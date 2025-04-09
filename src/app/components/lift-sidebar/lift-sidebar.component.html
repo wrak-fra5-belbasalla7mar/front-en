@@ -1,0 +1,67 @@
+<!-- Navbar for Small Screens (Fixed at the Top) -->
+<nav class="navbar navbar-light bg-light d-md-none position-fixed">
+    <button class="btn btn-outline-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+        <i class="bi bi-list"></i> Menu
+    </button>
+</nav>
+
+<!-- Offcanvas Sidebar for Small Screens -->
+<div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="sidebarMenu">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Sidebar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a routerLink="/user" routerLinkActive="active" class="nav-link link-dark">
+                    <i class="bi bi-person me-2"></i> User
+                </a>
+            </li>
+            <li class="nav-item">
+                <a routerLink="/team" routerLinkActive="active" class="nav-link link-dark">
+                    <i class="bi bi-people me-2"></i> Team
+                </a>
+            </li>
+            <li class="nav-item">
+                <a routerLink="/evaluation" routerLinkActive="active" class="nav-link link-dark">
+                    <i class="bi bi-bar-chart me-2"></i> Evaluation
+                </a>
+            </li>
+            <li class="nav-item">
+                <a routerLink="/attendance" routerLinkActive="active" class="nav-link link-dark">
+                    <i class="bi bi-calendar-check me-2"></i> Attendance
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Sidebar for Medium & Larger Screens (Fixed Sidebar) -->
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-light d-none d-md-flex position-fixed" style="width: 280px; height: 100vh; top: 0; left: 0;">
+    <span class="fs-4 fw-semibold">Company Portal</span>
+    <hr>
+
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a routerLink="/user" routerLinkActive="active" class="nav-link link-dark">
+                <i class="bi bi-person me-2"></i> User
+            </a>
+        </li>
+        <li>
+            <a routerLink="/team" routerLinkActive="active" class="nav-link link-dark">
+                <i class="bi bi-people me-2"></i> Team
+            </a>
+        </li>
+        <li>
+            <a routerLink="/evaluation" routerLinkActive="active" class="nav-link link-dark">
+                <i class="bi bi-bar-chart me-2"></i> Evaluation
+            </a>
+        </li>
+        <li>
+            <a routerLink="/attendance" routerLinkActive="active" class="nav-link link-dark">
+                <i class="bi bi-calendar-check me-2"></i> Attendance
+            </a>
+        </li>
+    </ul>
+</div>

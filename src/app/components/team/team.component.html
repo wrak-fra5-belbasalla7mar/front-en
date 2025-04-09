@@ -1,0 +1,32 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5>Team Management</h5>    
+  <button class="btn btn-primary">Add Member</button>
+</div>
+
+    <div class="card shadow-sm border-0">
+      <!-- Toggle Button -->
+      <div class="d-flex align-items-center p-2 bg-light rounded" 
+           data-bs-toggle="collapse" 
+           [attr.data-bs-target]="'#teamDropdown' + team.id"
+           style="cursor: pointer">
+          <i class="bi bi-people me-2"></i> 
+          <span class="fw-semibold">{{ team.teamName }}</span>
+          <i class="bi bi-chevron-down ms-auto transition"></i>
+      </div>
+      
+      <!-- Collapsible Content -->
+      <div class="collapse mt-2" [id]="'teamDropdown' + team.id">
+        <ul class="list-unstyled mb-0">
+          @for (member of team.members; track member) {
+            <li class="py-2 border-bottom">
+              <app-team-member-row [member]="{id:member.userId}"></app-team-member-row>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  
+  
+  
+  
+  

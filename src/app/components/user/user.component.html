@@ -1,0 +1,50 @@
+
+        <div class = "d-flex justify-content-between align-items-center mt-2">
+            <div class="d-flex align-items-center">
+                <img src="profile.png" alt="User Image" class="rounded-circle img-fluid me-3" style="width: 60px; height: 60px;">
+                <div>
+                    <h4 class="fw-bold me-3">{{user.name}}</h4>
+                    <p class="text-muted">{{user.title}}</p>
+                </div>
+                <button class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edit Info</button>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <p class="fw-bold mb-1">Role</p>
+                <p>{{user.role}}</p>
+    
+                <p class="fw-bold mb-1">Location</p>
+                <p>{{user.location}}</p>
+    
+                <p class="fw-bold mb-1">Gross Salary</p>
+                <p>${{user.grossSalary}}/month</p>
+            </div>
+            <div class="col-md-6">
+                <p class="fw-bold mb-1">Department</p>
+                <p>{{user.department}}</p>
+    
+                <p class="fw-bold mb-1">Net Salary</p>
+                <p>{{ (user.grossSalary ?? 0) * 0.8 }}/month</p>
+            </div>
+        </div>
+        <h5 class="mt-4 fw-bold">User History</h5>
+        <div class="table-responsive">
+            <table class="table table-borded">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Level</th>
+                        <th>Role</th>
+                        <th>Salary Gross</th>
+                        <th>Title</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   
+                </tbody>
+            </table>
+        </div>
+
+   

@@ -1,0 +1,38 @@
+<div class="shadow p-4 mb-5 bg-white rounded justify-content-center">
+  <h1 class="text-center">Sign In</h1>
+  <form #signInForm="ngForm" (ngSubmit)="onSubmit(signInForm)">
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input
+        type="email"
+        class="form-control"
+        id="email"
+        name="email"
+        ngModel
+        required
+        placeholder="Enter email"
+        aria-describedby="emailHelp"
+      />
+      <small id="emailHelp" class="form-text text-muted">
+        We'll never share your email with anyone else.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input
+        type="password"
+        class="form-control"
+        id="password"
+        name="password"
+        ngModel
+        required
+        placeholder="Password"
+      />
+    </div>
+
+    <div class="text-center mt-3">
+      <button type="submit" class="btn btn-primary">Sign in</button>
+    </div>
+  </form>
+</div>
