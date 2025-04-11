@@ -8,6 +8,7 @@ import { Cycle } from '../../models/cycle.model';
 import { UserService } from '../../services/user.service';
 import { TeamService } from '../../services/team.service';
 import { EvaluationService } from '../../services/evaluation.service';
+import { UserModel } from '../../models/user.model';
 
 @Component({
   selector: 'app-evaluation',
@@ -20,7 +21,7 @@ export class EvaluationComponent implements OnInit {
   team: Team | null = null;
   selectedMember: TeamMember | null = null;
   evaluationKpis: EvaluationKpi[] = [];
-  currentUser: any | null = null;
+  currentUser: UserModel | null = null;
   isLoading: boolean = false;
   errorMessage: string | null = null;
   cycles: Cycle[] = [];
@@ -33,26 +34,30 @@ export class EvaluationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-
     this.currentUser = this.userService.getUser();
     if (!this.currentUser) {
       this.errorMessage = 'Please sign in to continue.';
       return;
     }
-
+  
     this.team = this.teamService.getTeam();
     if (!this.team) {
       this.errorMessage = 'No team found. Please contact support.';
       return;
     }
-
+  
     this.isLoading = true;
     this.evaluationService.getCycles().subscribe({
       next: (cycles) => {
         this.cycles = cycles.filter(cycle => cycle.state === 'PASSED');
         if (this.cycles.length > 0) {
-          this.selectedCycleId = this.cycles[0].id;
-          this.loadKPIs();
+          this.selectedCycleId = this.cycles[0].id ?? null;
+          if (this.selectedCycleId !== null) {
+            this.loadKPIs();
+          } else {
+            this.errorMessage = 'Selected cycle does not have a valid ID.';
+            this.isLoading = false;
+          }
         } else {
           this.errorMessage = 'No evaluation cycles available.';
           this.isLoading = false;
@@ -65,16 +70,15 @@ export class EvaluationComponent implements OnInit {
       }
     });
   }
-
   loadKPIs(): void {
     if (!this.selectedCycleId) return;
 
     this.isLoading = true;
     this.evaluationKpis = [];
     this.evaluationService.getKPIsByCycle(this.selectedCycleId).subscribe({
-      next: (kpis) => {
-        this.evaluationKpis = kpis.map(kpi => ({
-          kpi: { ...kpi, maxScore: 5 },
+      next: (kpis: Kpi[]) => {
+        this.evaluationKpis = kpis.map((kpi: Kpi) => ({
+          kpi: { ...kpi, maxScore: kpi.maxScore || 5 }, 
           score: 0,
           feedback: ''
         }));
@@ -119,8 +123,8 @@ export class EvaluationComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.errorMessage = null; // Reset error message before saving
-    this.evaluationService.saveEvaluation(this.currentUser.id, this.selectedMember, this.evaluationKpis, this.selectedCycleId).subscribe({
+    this.errorMessage = null;
+    this.evaluationService.saveEvaluation(this.currentUser!.id, this.selectedMember, this.evaluationKpis, this.selectedCycleId).subscribe({
       next: () => {
         alert('Evaluation saved successfully!');
         this.selectedMember = null;

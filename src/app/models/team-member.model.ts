@@ -4,4 +4,5 @@ export interface TeamMember {
     title: string;
     level: string;
     profileImage?: string;
+    
   }

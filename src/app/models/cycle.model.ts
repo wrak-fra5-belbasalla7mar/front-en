@@ -1,6 +1,10 @@
+import { Kpi } from "./kpi.model";
 export interface Cycle {
-    id: number;
-    startDate: string; 
-    endDate: string;
-    state: 'OPENED' | 'PASSED' | 'CLOSED';
-  }
+  id?: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  state: 'OPEN' | 'PASSED' | 'CLOSED';
+  companyManagerId: number;
+  kpis?: Kpi[];
+}

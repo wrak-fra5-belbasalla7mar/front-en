@@ -1,0 +1,25 @@
+.card {
+    border-radius: 8px;
+  }
+  
+  .form-control {
+    border-radius: 5px;
+  }
+  
+  .form-control.is-invalid {
+    border-color: #dc3545;
+  }
+  
+  .invalid-feedback {
+    display: block;
+    font-size: 0.875em;
+    color: #dc3545;
+  }
+  
+  .btn {
+    border-radius: 5px;
+  }
+  
+  .alert {
+    border-radius: 5px;
+  }

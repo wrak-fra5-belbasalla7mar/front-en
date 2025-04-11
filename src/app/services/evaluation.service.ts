@@ -1,60 +1,69 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, forkJoin } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { UserService } from './user.service';
-import { TeamService } from './team.service';
+import { Cycle } from '../models/cycle.model';
 import { Kpi, EvaluationKpi } from '../models/kpi.model';
 import { TeamMember } from '../models/team-member.model';
-import { Cycle } from '../models/cycle.model';
-import { RatingRequest } from '../models/rating-request.model'; 
+
 @Injectable({
   providedIn: 'root'
 })
 export class EvaluationService {
   private readonly API_URL = 'http://localhost:8083';
 
-  constructor(
-    private http: HttpClient,
-    private userService: UserService,
-    private teamService: TeamService
-  ) {}
+  constructor(private http: HttpClient) {}
 
-  // Get Cycles
+  // Cycles
+  createCycle(cycle: Cycle): Observable<Cycle> {
+    return this.http.post<Cycle>(`${this.API_URL}/cycles`, cycle).pipe(
+      catchError(this.handleError('Failed to create cycle'))
+    );
+  }
+
+  passCycle(cycleId: number): Observable<Cycle> {
+    return this.http.put<Cycle>(`${this.API_URL}/cycles/pass/${cycleId}`, {}).pipe(
+      catchError(this.handleError('Failed to pass cycle'))
+    );
+  }
+
+  closeCycle(cycleId: number): Observable<Cycle> {
+    return this.http.put<Cycle>(`${this.API_URL}/cycles/close/${cycleId}`, {}).pipe(
+      catchError(this.handleError('Failed to close cycle'))
+    );
+  }
+
   getCycles(): Observable<Cycle[]> {
-    return this.http.get<Cycle[]>(`${this.API_URL}/cycles`).pipe(
-      catchError(this.handleError('Failed to fetch evaluation cycles'))
+    return this.http.get<Cycle[]>(`${this.API_URL}/cycles/Desc`).pipe(
+      catchError(this.handleError('Failed to fetch cycles'))
     );
   }
 
-  // Get KPIs For Cycle
-
+  // KPIs
   getKPIsByCycle(cycleId: number): Observable<Kpi[]> {
-    return this.http.get<Kpi[]>(`${this.API_URL}/kpis/cycle/${cycleId}`).pipe(
-      catchError(this.handleError(`Failed to fetch KPIs for cycle ${cycleId}`))
+    return this.http.get<Kpi[]>(`${this.API_URL}/cycles/${cycleId}/kpis`).pipe(
+      catchError(this.handleError('Failed to fetch KPIs for cycle'))
     );
   }
 
-  // Save Rating
-  saveEvaluation(submitterId: number, member: TeamMember, evaluationKpis: EvaluationKpi[], cycleId: number): Observable<any> {
-    const requests: Observable<any>[] = evaluationKpis.map(kpi => {
-      const ratingRequest: RatingRequest = {
-        submitterId: submitterId,
-        ratedPersonId: member.userId,
+  saveEvaluation(
+    evaluatorId: number,
+    member: TeamMember,
+    evaluationKpis: EvaluationKpi[],
+    cycleId: number
+  ): Observable<void> {
+    const evaluationData = {
+      evaluatorId,
+      teamMemberId: member.userId,
+      cycleId,
+      kpiEvaluations: evaluationKpis.map(kpi => ({
+        kpiId: kpi.kpi.id,
         score: kpi.score,
-        feedback: kpi.feedback || '',
-        kpi: { id: kpi.kpi.id },
-        cycle: { id: cycleId }
-      };
-      return this.http.post(`${this.API_URL}/ratings`, ratingRequest).pipe(
-        catchError(this.handleError(`Failed to save evaluation for KPI ${kpi.kpi.id}`))
-      );
-    });
-
-    return forkJoin(requests).pipe(
-      catchError(err => {
-        return throwError(() => new Error(err.message || 'Failed to save evaluations'));
-      })
+        feedback: kpi.feedback
+      }))
+    };
+    return this.http.post<void>(`${this.API_URL}/evaluations`, evaluationData).pipe(
+      catchError(this.handleError('Failed to save evaluation'))
     );
   }
 
@@ -73,3 +82,6 @@ export class EvaluationService {
     };
   }
 }
+
+export type { Cycle };
+

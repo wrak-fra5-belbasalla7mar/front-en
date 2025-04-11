@@ -1,0 +1,111 @@
+<div class="container mt-4">
+    <h2 class="mb-4">Manage Cycles</h2>
+  
+    <!-- Error Message -->
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  
+    <!-- Loading Spinner -->
+    <div class="text-center" *ngIf="isLoading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  
+    <!-- Create Cycle Form -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Create New Cycle</h5>
+        <form #cycleForm="ngForm" (ngSubmit)="createCycle()">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="cycleName" class="form-label">Cycle Name</label>
+              <input
+                type="text"
+                id="cycleName"
+                class="form-control"
+                [(ngModel)]="newCycle.name"
+                name="cycleName"
+                required
+                #cycleName="ngModel"
+                [ngClass]="{'is-invalid': cycleName.invalid && cycleName.touched}"
+              />
+              <div class="invalid-feedback" *ngIf="cycleName.invalid && cycleName.touched">
+                Cycle name is required.
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="startDate" class="form-label">Start Date</label>
+              <input
+                type="date"
+                id="startDate"
+                class="form-control"
+                [(ngModel)]="newCycle.startDate"
+                name="startDate"
+                required
+                #startDate="ngModel"
+                [ngClass]="{'is-invalid': startDate.invalid && startDate.touched}"
+              />
+              <div class="invalid-feedback" *ngIf="startDate.invalid && startDate.touched">
+                Start date is required.
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="endDate" class="form-label">End Date</label>
+              <input
+                type="date"
+                id="endDate"
+                class="form-control"
+                [(ngModel)]="newCycle.endDate"
+                name="endDate"
+                required
+                #endDate="ngModel"
+                [ngClass]="{'is-invalid': endDate.invalid && endDate.touched}"
+              />
+              <div class="invalid-feedback" *ngIf="endDate.invalid && endDate.touched">
+                End date is required.
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success" [disabled]="isLoading || cycleForm.invalid">
+            Create Cycle
+          </button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Cycles List -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Cycles List</h5>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>State</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cycle of cycles">
+              <td>{{ cycle.name }}</td>
+              <td>{{ cycle.startDate }}</td>
+              <td>{{ cycle.endDate }}</td>
+              <td>{{ cycle.state }}</td>
+              <td>
+                <button class="btn btn-warning btn-sm me-2" (click)="passCycle(cycle.id!)" [disabled]="cycle.state !== 'OPEN' || isLoading">
+                  Pass
+                </button>
+                <button class="btn btn-danger btn-sm" (click)="closeCycle(cycle.id!)" [disabled]="cycle.state !== 'PASSED' || isLoading">
+                  Close
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
