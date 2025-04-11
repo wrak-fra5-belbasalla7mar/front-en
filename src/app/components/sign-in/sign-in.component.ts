@@ -10,6 +10,8 @@ import { UserService } from '../../services/user.service';
 import { Team } from '../../models/team.model';
 import { switchMap } from 'rxjs';
 import { TeamService } from '../../services/team.service';
+import { ClientService } from '../../services/client.service';
+
 @Component({
   standalone: true,
   imports: [CommonModule,FormsModule, RouterModule],
@@ -18,10 +20,13 @@ import { TeamService } from '../../services/team.service';
 })
 export class SignInComponent {
 
-  constructor(private http:HttpClient,
+  constructor(
     private router:Router,
-    private TeamService:TeamService,
-    private userService:UserService) { }
+    private  teamService:TeamService,
+    private userService:UserService,
+    private clientService:ClientService
+  )
+   { }
   onSubmit(form: NgForm) {
     if (form.invalid) {
       alert('Please fill in all fields correctly.');
@@ -30,41 +35,31 @@ export class SignInComponent {
   
     const email = form.value.email;
     const password = form.value.password;
-  
-    this.http.get<UserResponse>('http://localhost:8080/login', {
-      params: { email, password }
-    }).pipe(
-      switchMap((res: UserResponse) => {
-        const user: UserModel = {
-          id: res.id,
-          name: res.name,
-          email: res.mail,
-          department: res.department.name,
-          title: res.title,
-          grossSalary: res.salaryGross,
-          location: res.department.company.location,
-          role: res.role,
-        };
-  
-        this.userService.setUser(user);
-  
-        // Now call the second API
-        return this.http.get<Team>('http://localhost:8082/teams/team-members', {
-          params: { memberId: res.id }
-        });
-      })
-    ).subscribe({
-      next: (team: Team) => {
-        console.log('Team data:', team);
-        this.TeamService.setUser(team);
-        this.router.navigate(['/user']);
-      },
-      error: (err) => {
-        alert('Error: ' + (err.message || 'Unknown error'));
+    this.clientService.login(email, password).subscribe((res: UserModel) => {
+      this.userService.setUser({
+        id: res.id,
+        name: res.name,
+        email: res.email,
+        department: res.department,
+        title: res.title,
+        grossSalary: res.grossSalary,
+        location: res.location,
+        role: res.role,
+      });
+      if (res.id !== undefined) {
+        this.teamService.loadTeam(res.id);
+      } else {
+        console.error('User ID is undefined.');
       }
+      this.router.navigate(['/user']);
     });
   }
-      
+  
+   
 }
+
+
+      
+      
 
 

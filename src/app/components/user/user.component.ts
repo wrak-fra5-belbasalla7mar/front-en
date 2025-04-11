@@ -11,9 +11,16 @@ import { UserService } from '../../services/user.service';
 })
 export class UserComponent {
   user!:UserModel;
+  history:UserModel[] = [];
   constructor(private userService:UserService) {  }
 
   ngOnInit(): void {
-    this.user=this.userService.getUser()!;
+    this.userService.user$.subscribe(user => {
+     this.user = user!;
+    });
+    this.userService.loadHistory(this.user.id!);
+    this.userService.history$.subscribe(history => {
+      this.history = history;
+    });
   }
 }
