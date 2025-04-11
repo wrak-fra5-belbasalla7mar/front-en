@@ -9,7 +9,7 @@ import { ClientService } from './client.service';
 export class UserService {
   private historySubject = new BehaviorSubject<UserModel[]>([]);  
   private userSubject = new BehaviorSubject<UserModel | null>(null);
-  
+  private historyLoaded=false;
   user$ = this.userSubject.asObservable();
   history$ = this.historySubject.asObservable();  
 
@@ -21,10 +21,14 @@ export class UserService {
 
 
   loadHistory(id:number): void {
+    if (this.historyLoaded) {
+    
+      return;
+    }
     this.clientService.getHistory(id).subscribe(history => {
-      alert('History loaded successfully!');
-      alert(history);
+      
       this.historySubject.next(history);   
+      this.historyLoaded=true;
     });
   }
 

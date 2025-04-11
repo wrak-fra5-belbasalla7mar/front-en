@@ -12,7 +12,7 @@ export interface UserResponse {
     manager: Manager;
     department: Department;
   }
-  interface Manager {
+ export interface Manager {
     id: number;
     name: string;
     title: string;
