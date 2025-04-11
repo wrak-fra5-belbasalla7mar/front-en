@@ -14,5 +14,4 @@ export const routes: Routes = [
    {path: 'attendance', component: AttendanceComponent},
    {path: 'signin',component: SignInComponent}
 
-
 ];

@@ -8,11 +8,12 @@ import { BehaviorSubject } from 'rxjs';
 export class TeamService {
  private teamSubject=new BehaviorSubject<Team | null>(null);
   team$=this.teamSubject.asObservable();
-  setUser(team:Team){
+  setTeam(team:Team){
     this.teamSubject.next(team);
   }
-  getUser():Team | null {
+  getTeam():Team | null {
     return this.teamSubject.getValue();
   }
+  
   constructor() { }
 }

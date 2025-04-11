@@ -1,4 +1,4 @@
-interface RatingRequest {
+export interface RatingRequest {
     submitterId: number;
     ratedPersonId: number;
     score: number;

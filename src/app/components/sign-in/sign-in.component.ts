@@ -56,7 +56,7 @@ export class SignInComponent {
     ).subscribe({
       next: (team: Team) => {
         console.log('Team data:', team);
-        this.TeamService.setUser(team);
+        this.TeamService.setTeam(team);
         this.router.navigate(['/user']);
       },
       error: (err) => {

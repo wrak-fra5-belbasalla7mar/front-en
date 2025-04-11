@@ -12,7 +12,7 @@ import { Team } from '../../models/team.model';
 export class TeamComponent {
 team!:Team
  constructor(private teamService:TeamService){
-  this.team=this.teamService.getUser()!;
+  this.team=this.teamService.getTeam()!;
  }
   
 
