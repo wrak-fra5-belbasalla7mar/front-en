@@ -1,0 +1,8 @@
+/* evaluation.component.css */
+.evaluate-btn {
+  white-space: nowrap; 
+}
+
+.card-body {
+  min-height: 90px; 
+}

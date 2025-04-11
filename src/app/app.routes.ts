@@ -7,12 +7,12 @@ import { SignInComponent } from './components/sign-in/sign-in.component';
 
 
 export const routes: Routes = [
-   { path: '', redirectTo: 'signin', pathMatch: 'full'},
-   {path: 'signin',component: SignInComponent},
+   { path: '', redirectTo: 'EvaluationComponent', pathMatch: 'full'},
+   {path: 'evaluation', component: EvaluationComponent},
    {path: 'user', component: UserComponent},
    {path: 'team', component: TeamComponent},
-   {path: 'evaluation', component: EvaluationComponent},
-   {path: 'attendance', component: AttendanceComponent}
+   {path: 'attendance', component: AttendanceComponent},
+   {path: 'signin',component: SignInComponent}
 
 
 ];

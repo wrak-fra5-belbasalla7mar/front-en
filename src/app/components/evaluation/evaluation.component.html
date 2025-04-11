@@ -1,1 +1,61 @@
-<p>evaluation works!</p>
+<div class="container mt-4">
+    <div class="row">
+      <!-- Team Members Section -->
+      <div [ngClass]="selectedMember ? 'col-12 col-md-4 mb-4 mb-md-0' : 'col-12'">
+        <h2 class="mb-3">Team Members</h2>
+        <div class="card mb-3 shadow-sm" [ngClass]="{'border-primary': selectedMember?.userId === member.userId}" *ngFor="let member of team?.members">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <img *ngIf="member.profileImage" [src]="member.profileImage" alt="Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;" />
+                <div *ngIf="!member.profileImage" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
+                  {{ member.name.charAt(0) }}
+                </div>
+              </div>
+              <div class="col">
+                <strong class="d-block text-truncate">{{ member.name }}</strong>
+                <small class="text-muted d-block text-truncate">{{ member.title }} - {{ member.level }}</small>
+              </div>
+              <div class="col-auto">
+                <button class="btn btn-primary evaluate-btn" (click)="selectMember(member)" [title]="'Evaluate ' + member.name">
+                  <i class="bi bi-person-check me-1"></i> Evaluate
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Evaluation Form Section -->
+      <div class="col-12 col-md-8" *ngIf="selectedMember">
+        <h2 class="mb-3">Evaluation Form</h2>
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <img *ngIf="selectedMember.profileImage" [src]="selectedMember.profileImage" alt="Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;" />
+              <div *ngIf="!selectedMember.profileImage" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px; font-size: 20px; font-weight: bold;">
+                {{ selectedMember.name.charAt(0) }}
+              </div>
+              <div>
+                <strong>{{ selectedMember.name }}</strong> • {{ selectedMember.level }}<br />
+                <small class="text-muted">{{ selectedMember.title }}</small>
+              </div>
+            </div>
+  
+            <div class="mb-3" *ngFor="let evalKpi of evaluationKpis">
+              <label class="form-label">{{ evalKpi.kpi.name }}</label>
+              <div class="d-flex align-items-center flex-column flex-md-row">
+                <input type="number" class="form-control w-100 w-md-auto mb-2 mb-md-0 me-md-2" [(ngModel)]="evalKpi.score" [min]="0" [max]="evalKpi.kpi.maxScore" required />
+                <small class="text-muted">Max Score: {{ evalKpi.kpi.maxScore }}</small>
+              </div>
+            </div>
+
+
+            <button class="btn btn-success save-btn w-100 w-md-auto" (click)="saveEvaluation()" title="Save evaluation for the selected member">
+              <i class="bi bi-save me-1"></i> Save Evaluation
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
