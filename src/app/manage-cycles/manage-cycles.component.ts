@@ -32,7 +32,8 @@ export class ManageCyclesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.userService.getUser();
+   this.userService.user$.subscribe(user => {this.currentUser = user;});
+    
     if (!this.currentUser) {
       this.router.navigate(['/sign-in']);
       return;

@@ -34,13 +34,14 @@ export class EvaluationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.userService.getUser();
+    this.userService.user$.subscribe(user => {this.currentUser = user; });
     if (!this.currentUser) {
       this.errorMessage = 'Please sign in to continue.';
       return;
     }
   
-    this.team = this.teamService.getTeam();
+    this.teamService.team$.subscribe(team => {
+      this.team = team}); 
     if (!this.team) {
       this.errorMessage = 'No team found. Please contact support.';
       return;
