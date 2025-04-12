@@ -5,6 +5,7 @@ import { Team } from '../../models/team.model';
 
 @Component({
   selector: 'app-team',
+  standalone:true,
   imports: [TeamMemberRowComponent],
   templateUrl: './team.component.html',
   styleUrl: './team.component.css'

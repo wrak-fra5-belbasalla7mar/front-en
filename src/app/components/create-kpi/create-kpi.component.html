@@ -1,0 +1,86 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Create New KPI</h2>
+
+  <!-- Error Message -->
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Create KPI Form -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form>
+        <div class="mb-3">
+          <label for="kpiName" class="form-label">KPI Name</label>
+          <input
+            type="text"
+            id="kpiName"
+            class="form-control"
+            [(ngModel)]="newKPI.name"
+            name="kpiName"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="cycleSelect" class="form-label">Select Cycle</label>
+          <select
+            id="cycleSelect"
+            class="form-select"
+            [(ngModel)]="selectedCycleId"
+            name="cycleSelect"
+            required
+          >
+            <option value="" disabled>Select a cycle</option>
+            <option *ngFor="let cycle of cycles" [value]="cycle.id">
+              {{ cycle.name }} ({{ cycle.startDate }} - {{ cycle.endDate }})
+            </option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Assign Roles (Optional)</label>
+          <div *ngFor="let roleAssignment of selectedRoles; let i = index" class="mb-2">
+            <div class="row">
+              <div class="col-md-5">
+                <select
+                  class="form-select"
+                  [(ngModel)]="roleAssignment.role"
+                  [ngModelOptions]="{standalone: true}"
+                >
+                  <option [ngValue]="null" disabled>Select a role</option>
+                  <option *ngFor="let role of allRoles" [ngValue]="role">
+                    {{ role.name }} (Level: {{ role.level }})
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <input
+                  type="number"
+                  class="form-control"
+                  placeholder="Weight"
+                  [(ngModel)]="roleAssignment.weight"
+                  [ngModelOptions]="{standalone: true}"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              <div class="col-md-4">
+                <button type="button" class="btn btn-danger btn-sm" (click)="removeRole(i)">
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addRole()">
+            Add Role
+          </button>
+        </div>
+
+        <button type="button" class="btn btn-primary" (click)="createKPI()" [disabled]="isLoading">
+          {{ isLoading ? 'Creating...' : 'Create KPI' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

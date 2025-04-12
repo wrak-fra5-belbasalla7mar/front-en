@@ -1,8 +1,21 @@
-/* evaluation.component.css */
-.evaluate-btn {
-  white-space: nowrap; 
+.card {
+  transition: transform 0.2s;
 }
 
-.card-body {
-  min-height: 90px; 
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+  color: #007bff;
+}
+
+.badge {
+  font-size: 0.9rem;
+}
+
+.list-group-item {
+  border-radius: 5px;
+  margin-bottom: 10px;
 }

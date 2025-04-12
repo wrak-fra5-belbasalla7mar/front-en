@@ -4,16 +4,18 @@ import { TeamComponent } from './components/team/team.component';
 import { EvaluationComponent } from './components/evaluation/evaluation.component';
 import { AttendanceComponent } from './components/attendance/attendance.component';
 import { SignInComponent } from './components/sign-in/sign-in.component';
-import { ManageCyclesComponent } from './manage-cycles/manage-cycles.component';
+import { ManageCyclesComponent } from './components/manage-cycles/manage-cycles.component';
+import { CreateKpiComponent } from './components/create-kpi/create-kpi.component';
 
 
 export const routes: Routes = [
-   { path: '', redirectTo: 'ManageCyclesComponent', pathMatch: 'full'},
-   {path: 'evaluation', component: EvaluationComponent},
-   { path: 'manage-cycles', component: ManageCyclesComponent },
+   { path: '', redirectTo: 'signin', pathMatch: 'full'},
+   {path: 'signin',component: SignInComponent},
+   {path: 'evaluation', component: EvaluationComponent}, 
+   { path: 'create-kpi', component: CreateKpiComponent },
    {path: 'user', component: UserComponent},
    {path: 'team', component: TeamComponent},
    {path: 'attendance', component: AttendanceComponent},
-   {path: 'signin',component: SignInComponent}
-
+   { path: 'manage-cycles', component: ManageCyclesComponent }
+   
 ];

@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, forkJoin } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Cycle } from '../models/cycle.model';
 import { Kpi, EvaluationKpi } from '../models/kpi.model';
 import { TeamMember } from '../models/team-member.model';
+import { Role } from '../models/role.model';
 
 @Injectable({
   providedIn: 'root'
@@ -34,36 +35,86 @@ export class EvaluationService {
   }
 
   getCycles(): Observable<Cycle[]> {
-    return this.http.get<Cycle[]>(`${this.API_URL}/cycles/Desc`).pipe(
+    return this.http.get<Cycle[]>(`${this.API_URL}/cycles`).pipe(
       catchError(this.handleError('Failed to fetch cycles'))
     );
   }
 
   // KPIs
+  getAllKPIs(): Observable<Kpi[]> {
+    return this.http.get<Kpi[]>(`${this.API_URL}/kpis`).pipe(
+      catchError(this.handleError('Failed to fetch all KPIs'))
+    );
+  }
+
   getKPIsByCycle(cycleId: number): Observable<Kpi[]> {
-    return this.http.get<Kpi[]>(`${this.API_URL}/cycles/${cycleId}/kpis`).pipe(
+    return this.http.get<Kpi[]>(`${this.API_URL}/kpis/cycle/${cycleId}`).pipe(
       catchError(this.handleError('Failed to fetch KPIs for cycle'))
     );
   }
 
+  createKPI(kpi: Kpi, userId: number): Observable<Kpi> {
+    return this.http.post<Kpi>(`${this.API_URL}/kpis/${userId}`, kpi).pipe(
+      catchError(this.handleError('Failed to create KPI'))
+    );
+  }
+
+  assignKpiToCycle(kpiId: number, cycleId: number): Observable<Kpi> {
+    return this.http.put<Kpi>(`${this.API_URL}/kpis/${kpiId}/cycle/${cycleId}`, {}).pipe(
+      catchError(this.handleError('Failed to assign KPI to cycle'))
+    );
+  }
+
+  assignKpiToRole(kpiId: number, roleName: string, roleLevel: string, weight: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.API_URL}/kpis/${kpiId}/role/${roleName}/${roleLevel}`,
+      {},
+      { params: { weight: weight.toString() } }
+    ).pipe(
+      catchError(this.handleError('Failed to assign KPI to role'))
+    );
+  }
+
+  // Ratings
   saveEvaluation(
     evaluatorId: number,
     member: TeamMember,
     evaluationKpis: EvaluationKpi[],
     cycleId: number
-  ): Observable<void> {
-    const evaluationData = {
-      evaluatorId,
-      teamMemberId: member.userId,
-      cycleId,
-      kpiEvaluations: evaluationKpis.map(kpi => ({
-        kpiId: kpi.kpi.id,
+  ): Observable<void[]> {
+    const ratingRequests = evaluationKpis.map(kpi => {
+      const ratingData = {
+        kpi: { id: kpi.kpi.id },
+        evaluatorId,
+        teamMemberId: member.userId,
+        cycle: { id: cycleId },
         score: kpi.score,
         feedback: kpi.feedback
-      }))
-    };
-    return this.http.post<void>(`${this.API_URL}/evaluations`, evaluationData).pipe(
+      };
+      return this.http.post<void>(`${this.API_URL}/ratings`, ratingData);
+    });
+
+    return forkJoin(ratingRequests).pipe(
       catchError(this.handleError('Failed to save evaluation'))
+    );
+  }
+
+  // Roles
+  getAllRoles(): Observable<Role[]> {
+    return this.http.get<Role[]>(`${this.API_URL}/roles`).pipe(
+      catchError(this.handleError('Failed to fetch roles'))
+    );
+  }
+
+  getRoleByNameAndLevel(name: string, level: string): Observable<Role> {
+    return this.http.get<Role>(`${this.API_URL}/roles/${name}/${level}`).pipe(
+      catchError(this.handleError('Failed to fetch role'))
+    );
+  }
+
+  createRole(role: Role): Observable<Role> {
+    return this.http.post<Role>(`${this.API_URL}/roles`, role).pipe(
+      catchError(this.handleError('Failed to create role'))
     );
   }
 
@@ -82,6 +133,3 @@ export class EvaluationService {
     };
   }
 }
-
-export type { Cycle };
-

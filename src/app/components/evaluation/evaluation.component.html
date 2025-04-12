@@ -1,110 +1,132 @@
 <div class="container mt-4">
-  <h2 class="mb-4">Team Member Evaluation</h2>
+  <h2 class="mb-4">Evaluation</h2>
 
   <!-- Error Message -->
   <div class="alert alert-danger" *ngIf="errorMessage">
     {{ errorMessage }}
   </div>
 
-  <!-- Loading Spinner -->
-  <div class="text-center" *ngIf="isLoading">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <!-- Display PASSED Cycle -->
+  <div *ngIf="passedCycle" class="mb-5">
+    <h4 class="mb-3">
+      {{ passedCycle.name }} ({{ passedCycle.startDate }} - {{ passedCycle.endDate }}) - 
+      <span class="badge bg-success">{{ passedCycle.state }}</span>
+    </h4>
+
+    <!-- List of Team Members for PASSED Cycle -->
+    <div *ngIf="teamMembers.length > 0 && !showEvaluationForm">
+      <h5 class="mb-3">Team Members to Evaluate</h5>
+      <ul class="list-group">
+        <li *ngFor="let member of teamMembers" class="list-group-item d-flex justify-content-between align-items-center">
+          {{ member.name }}
+          <button
+            class="btn btn-primary btn-sm"
+            (click)="startEvaluation(member)"
+          >
+            Evaluate
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div *ngIf="teamMembers.length === 0 && !errorMessage" class="text-muted">
+      No team members available to evaluate.
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="row" *ngIf="!isLoading && !errorMessage">
-    <!-- Team Members List (Left Side) -->
-    <div class="col-md-4 mb-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Team Members</h5>
-          <ul class="list-group">
-            <li
-              class="list-group-item list-group-item-action"
-              *ngFor="let member of team?.members"
-              (click)="selectMember(member)"
-              [class.active]="selectedMember?.userId === member.userId"
-            >
-              {{ member.name }}
-            </li>
-          </ul>
+  <!-- Evaluation Form -->
+  <div *ngIf="showEvaluationForm">
+    <h5 class="mb-3">Evaluate KPIs for {{ selectedMember?.name }}</h5>
+    <div>
+      <strong>KPIs to Evaluate:</strong>
+      <ul>
+        <li *ngFor="let evalKpi of evaluationKpis; let i = index" class="mb-3">
+          <h6>{{ evalKpi.kpi.name }}</h6>
+          <div class="mb-2">
+            <label [for]="'score-' + i" class="form-label">Score (0-10)</label>
+            <input
+              type="number"
+              [id]="'score-' + i"
+              class="form-control"
+              [(ngModel)]="evalKpi.score"
+              min="0"
+              max="10"
+            />
+          </div>
+          <div class="mb-2">
+            <label [for]="'feedback-' + i" class="form-label">Feedback</label>
+            <textarea
+              [id]="'feedback-' + i"
+              class="form-control"
+              [(ngModel)]="evalKpi.feedback"
+            ></textarea>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-primary me-2"
+      (click)="saveEvaluation()"
+      [disabled]="isLoading"
+    >
+      {{ isLoading ? 'Saving...' : 'Save Evaluation' }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="cancelEvaluation()"
+    >
+      Cancel
+    </button>
+  </div>
+
+  <!-- Other Cycles -->
+  <div *ngIf="otherCycles.length > 0" class="mt-5">
+    <h4 class="mb-3">Other Cycles</h4>
+    <div class="row">
+      <div *ngFor="let cycle of otherCycles" class="col-md-4 mb-4">
+        <div class="card shadow-sm" (click)="selectOtherCycle(cycle)" style="cursor: pointer;">
+          <div class="card-body">
+            <h5 class="card-title">{{ cycle.name }}</h5>
+            <p class="card-text">
+              <strong>Duration:</strong> {{ cycle.startDate }} - {{ cycle.endDate }}<br />
+              <strong>State:</strong>
+              <span
+                [ngClass]="{
+                  'badge bg-warning': cycle.state === 'OPEN',
+                  'badge bg-danger': cycle.state === 'CLOSED'
+                }"
+              >
+                {{ cycle.state }}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Evaluation Form (Right Side) -->
-    <div class="col-md-8">
-      <div class="card shadow-sm" *ngIf="selectedMember; else noMemberSelected">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Evaluate {{ selectedMember.name }}</h5>
-
-          <!-- Cycle Selection -->
-          <div class="mb-3">
-            <label for="cycleSelect" class="form-label">Select Evaluation Cycle</label>
-            <select
-              id="cycleSelect"
-              class="form-select"
-              [(ngModel)]="selectedCycleId"
-              (change)="loadKPIs()"
-            >
-              <option *ngFor="let cycle of cycles" [value]="cycle.id">
-                {{ cycle.name }} ({{ cycle.startDate }} - {{ cycle.endDate }})
-              </option>
-            </select>
-          </div>
-
-          <!-- KPIs Evaluation -->
-          <div *ngIf="evaluationKpis.length > 0; else noKPIs">
-            <div class="mb-3" *ngFor="let kpi of evaluationKpis; let i = index">
-              <h6>{{ kpi.kpi.name }}</h6>
-              <div class="row">
-                <div class="col-md-6 mb-2">
-                  <label [for]="'score-' + i" class="form-label">Score (1 - {{ kpi.kpi.maxScore || 5 }})</label>
-                  <input
-                    type="number"
-                    [id]="'score-' + i"
-                    class="form-control"
-                    [(ngModel)]="kpi.score"
-                    [min]="1"
-                    [max]="kpi.kpi.maxScore || 5"
-                    required
-                  />
-                </div>
-                <div class="col-md-6 mb-2">
-                  <label [for]="'feedback-' + i" class="form-label">Feedback</label>
-                  <textarea
-                    [id]="'feedback-' + i"
-                    class="form-control"
-                    [(ngModel)]="kpi.feedback"
-                    rows="2"
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- Save Button -->
-            <button class="btn btn-success" (click)="saveEvaluation()" [disabled]="isLoading">
-              Save Evaluation
-            </button>
-          </div>
-
-          <!-- No KPIs Message -->
-          <ng-template #noKPIs>
-            <div class="alert alert-warning">
-              No KPIs available for the selected cycle.
-            </div>
-          </ng-template>
-        </div>
-      </div>
-
-      <!-- No Member Selected Message -->
-      <ng-template #noMemberSelected>
-        <div class="alert alert-info">
-          Please select a team member to evaluate.
-        </div>
-      </ng-template>
+  <!-- Team Members for Selected Other Cycle -->
+  <div *ngIf="selectedOtherCycle && !showEvaluationForm">
+    <h5 class="mb-3 mt-4">
+      Team Members for {{ selectedOtherCycle.name }} ({{ selectedOtherCycle.startDate }} - {{ selectedOtherCycle.endDate }})
+    </h5>
+    <div *ngIf="teamMembers.length > 0">
+      <ul class="list-group">
+        <li *ngFor="let member of teamMembers" class="list-group-item">
+          {{ member.name }}
+        </li>
+      </ul>
     </div>
+    <div *ngIf="teamMembers.length === 0 && !errorMessage" class="text-muted">
+      No team members available.
+    </div>
+  </div>
+
+  <!-- No Cycles -->
+  <div *ngIf="!passedCycle && otherCycles.length === 0 && !errorMessage" class="text-muted">
+    No cycles available.
   </div>
 </div>

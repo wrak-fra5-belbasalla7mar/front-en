@@ -18,7 +18,10 @@ export class UserService {
   setUser(user: UserModel): void {
     this.userSubject.next(user);
   }
-
+  
+  getUser(): UserModel | null {
+    return this.userSubject.getValue();
+  }
 
   loadHistory(id:number): void {
     if (this.historyLoaded) {

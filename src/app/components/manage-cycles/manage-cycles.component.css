@@ -1,0 +1,41 @@
+.container {
+  max-width: 1200px;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.btn-group {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 0.875rem;
+}
+
+.badge {
+  font-size: 0.9rem;
+  padding: 5px 10px;
+}
+
+.form-check {
+  margin-bottom: 10px;
+}
+
+.alert {
+  margin-bottom: 20px;
+}
+
+.text-muted {
+  font-style: italic;
+}
