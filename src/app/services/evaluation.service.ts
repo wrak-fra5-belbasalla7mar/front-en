@@ -6,6 +6,8 @@ import { Cycle } from '../models/cycle.model';
 import { Kpi, EvaluationKpi } from '../models/kpi.model';
 import { TeamMember } from '../models/team-member.model';
 import { Role } from '../models/role.model';
+import { Team } from '../models/team.model';
+import { Objective } from '../models/objective.model';
 
 @Injectable({
   providedIn: 'root'
@@ -115,6 +117,32 @@ export class EvaluationService {
   createRole(role: Role): Observable<Role> {
     return this.http.post<Role>(`${this.API_URL}/roles`, role).pipe(
       catchError(this.handleError('Failed to create role'))
+    );
+  }
+
+  // Teams
+  getTeamsByManager(managerId: number): Observable<Team[]> {
+    return this.http.get<Team[]>(`${this.API_URL}/teams/manager/${managerId}`).pipe(
+      catchError(this.handleError('Failed to fetch teams for manager'))
+    );
+  }
+
+  getTeamMembersByTeamAndCycle(teamId: number, cycleId: number): Observable<TeamMember[]> {
+    return this.http.get<TeamMember[]>(`${this.API_URL}/team-members/team/${teamId}/cycle/${cycleId}`).pipe(
+      catchError(this.handleError('Failed to fetch team members for team and cycle'))
+    );
+  }
+
+  // Objectives
+  assignObjective(objective: Objective): Observable<Objective> {
+    return this.http.post<Objective>(`${this.API_URL}/objectives`, objective).pipe(
+      catchError(this.handleError('Failed to assign objective'))
+    );
+  }
+
+  getObjectivesByUserId(userId: number): Observable<Objective[]> {
+    return this.http.get<Objective[]>(`${this.API_URL}/objectives/${userId}`).pipe(
+      catchError(this.handleError('Failed to fetch objectives for user'))
     );
   }
 

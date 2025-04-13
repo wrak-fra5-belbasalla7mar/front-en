@@ -1,18 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { EvaluationService } from '../../services/evaluation.service';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { Cycle } from '../../models/cycle.model';
 import { Kpi } from '../../models/kpi.model';
 import { UserModel } from '../../models/user.model';
+import { Team } from '../../models/team.model';
+import { TeamMember } from '../../models/team-member.model';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-manage-cycles',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './manage-cycles.component.html',
   styleUrls: ['./manage-cycles.component.css']
 })
@@ -28,6 +31,8 @@ export class ManageCyclesComponent implements OnInit {
   successMessage: string | null = null;
   showKpiSelection: boolean = false;
   currentUser: UserModel | null = null;
+  teams: Team[] = [];
+  teamMembers: { [teamId: number]: { [cycleId: number]: TeamMember[] } } = {};
 
   constructor(
     private evaluationService: EvaluationService,
@@ -37,7 +42,7 @@ export class ManageCyclesComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.userService.getUser();
-    console.log('Current user in ManageCyclesComponent:', this.currentUser); // Logging عشان نفهم إيه اللي بيحصل
+    console.log('Current user in ManageCyclesComponent:', this.currentUser);
 
     if (!this.currentUser) {
       this.errorMessage = 'Please sign in to continue.';
@@ -46,12 +51,27 @@ export class ManageCyclesComponent implements OnInit {
 
     if (this.currentUser?.id) {
       this.newCycle.companyManagerId = this.currentUser.id;
+      if (this.currentUser.role === 'TEAM_MANAGER') {
+        this.loadTeams();
+      }
     } else {
       console.warn('User ID not found, but user exists:', this.currentUser);
     }
 
     this.loadCycles();
     this.loadKPIs();
+  }
+
+  loadTeams(): void {
+    this.evaluationService.getTeamsByManager(this.currentUser!.id!).subscribe({
+      next: (teams: Team[]) => {
+        this.teams = teams;
+        this.loadCycles(); 
+      },
+      error: (err: { message: string }) => {
+        this.errorMessage = err.message || 'Failed to load teams.';
+      }
+    });
   }
 
   loadCycles(): void {
@@ -69,6 +89,24 @@ export class ManageCyclesComponent implements OnInit {
                 console.error(`Failed to load KPIs for cycle ${cycle.id}:`, err);
               }
             });
+
+            if (this.currentUser?.role === 'TEAM_MANAGER' && this.teams.length > 0) {
+              this.teams.forEach(team => {
+                if (team.id) {
+                  this.evaluationService.getTeamMembersByTeamAndCycle(team.id, cycle.id!).subscribe({
+                    next: (members: TeamMember[]) => {
+                      if (!this.teamMembers[team.id!]) {
+                        this.teamMembers[team.id!] = {};
+                      }
+                      this.teamMembers[team.id!][cycle.id!] = members;
+                    },
+                    error: (err: { message: string }) => {
+                      console.error(`Failed to load team members for team ${team.id} in cycle ${cycle.id}:`, err);
+                    }
+                  });
+                }
+              });
+            }
           }
         });
         this.isLoading = false;
@@ -229,13 +267,8 @@ export class ManageCyclesComponent implements OnInit {
     this.showKpiSelection = false;
   }
 
-  navigateToCreateKPI(cycleId?: number): void {
-    console.log('Navigating to Create KPI', { cycleId });
-    if (cycleId) {
-      this.router.navigate(['/create-kpi'], { queryParams: { cycleId } });
-    } else {
-      this.router.navigate(['/create-kpi']);
-    }
+  navigateToCreateKPI(): void {
+    this.router.navigate(['/create-kpi']);
   }
 
   onKpiChange(event: Event, kpiId: number): void {
