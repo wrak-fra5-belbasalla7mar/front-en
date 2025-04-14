@@ -1,0 +1,85 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Job Openings</h2>
+
+  <!-- Error Message -->
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Success Message -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="mb-4" *ngIf="isHr">
+    <button class="btn btn-warning" (click)="postNewJob()">+ Post Job</button>
+  </div>
+
+  <div *ngIf="openJobs.length === 0 && !errorMessage" class="text-muted">
+    No open jobs available.
+  </div>
+
+  <div class="row">
+    <div *ngFor="let job of openJobs" class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ job.title }}</h5>
+          <p class="card-text">
+            <strong>Department:</strong> {{ job.department }}<br>
+            <strong>Location:</strong> {{ job.location }}
+          </p>
+          <button class="btn btn-primary" (click)="viewDetails(job.id!)">View Details</button>
+
+          <div class="mt-2" *ngIf="isHr && job.createdBy === currentUser?.id">
+            <button class="btn btn-info btn-sm me-2" (click)="viewCvs(job.id!)">Show CVs</button>
+            <button class="btn btn-success btn-sm me-2" (click)="updateJob(job.id!)">Update</button>
+            <button class="btn btn-danger btn-sm me-2" (click)="deleteJob(job.id!)">Delete</button>
+            <button class="btn btn-secondary btn-sm" (click)="closeJob(job.id!)">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isHr" class="mt-5">
+    <h3 class="mb-4">My Posted Jobs</h3>
+    <div *ngIf="myPostedJobs.length === 0 && !errorMessage" class="text-muted">
+      You haven't posted any jobs yet.
+    </div>
+    <div class="row">
+      <div *ngFor="let job of myPostedJobs" class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ job.title }}</h5>
+            <p class="card-text">
+              <strong>Department:</strong> {{ job.department }}<br>
+              <strong>Location:</strong> {{ job.location }}<br>
+              <strong>Status:</strong>
+              <span
+                [ngClass]="{
+                  'badge bg-success': job.status === 'OPEN',
+                  'badge bg-danger': job.status === 'CLOSED'
+                }"
+              >
+                {{ job.status }}
+              </span>
+            </p>
+            <button class="btn btn-primary" (click)="viewDetails(job.id!)">View Details</button>
+            <div class="mt-2">
+              <button class="btn btn-info btn-sm me-2" (click)="viewCvs(job.id!)">Show CVs</button>
+              <button class="btn btn-success btn-sm me-2" (click)="updateJob(job.id!)">Update</button>
+              <button class="btn btn-danger btn-sm me-2" (click)="deleteJob(job.id!)">Delete</button>
+              <button
+                class="btn btn-sm me-2"
+                [ngClass]="job.status === 'OPEN' ? 'btn-secondary' : 'btn-success'"
+                (click)="job.status === 'OPEN' ? closeJob(job.id!) : openJob(job.id!)"
+              >
+                {{ job.status === 'OPEN' ? 'Close' : 'Open' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

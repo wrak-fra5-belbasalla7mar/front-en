@@ -7,6 +7,10 @@ import { SignInComponent } from './components/sign-in/sign-in.component';
 import { ManageCyclesComponent } from './components/manage-cycles/manage-cycles.component';
 import { CreateKpiComponent } from './components/create-kpi/create-kpi.component';
 import { AddObjectivesComponent } from './components/add-objectives/add-objectives.component';
+import { JobOpeningsComponent } from './components/job-openings/job-openings.component';
+import { JobDetailsComponent } from './components/job-details/job-details.component';
+import { JobCvsComponent } from './components/job-cvs/job-cvs.component';
+import { PostJobRequirementComponent } from './components/post-job-requirement/post-job-requirement.component';
 
 
 export const routes: Routes = [
@@ -17,6 +21,10 @@ export const routes: Routes = [
    { path: 'add-objectives/:userId/:cycleId', component: AddObjectivesComponent },
    {path: 'user', component: UserComponent},
    {path: 'team', component: TeamComponent},
+   { path: 'job-openings', component: JobOpeningsComponent },
+  { path: 'job-details/:id', component: JobDetailsComponent },
+  { path: 'post-job', component: PostJobRequirementComponent },
+  { path: 'job-cvs/:id', component: JobCvsComponent },
    {path: 'attendance', component: AttendanceComponent},
    { path: 'manage-cycles', component: ManageCyclesComponent }
    
