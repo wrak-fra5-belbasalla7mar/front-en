@@ -1,211 +1,113 @@
 <div class="container mt-4">
-  <h2 class="mb-4">Manage Cycles</h2>
+  <h2>Manage Cycles</h2>
 
-  <!-- Success Message -->
-  <div class="alert alert-success" *ngIf="successMessage">
-    {{ successMessage }}
-  </div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
-  <!-- Error Message -->
-  <div class="alert alert-danger" *ngIf="errorMessage">
-    {{ errorMessage }}
-  </div>
-
-  <!-- Create New Cycle (COMPANY_MANAGER) -->
-  <div class="card mb-4" *ngIf="currentUser?.role === 'COMPANY_MANAGER'">
+  <!-- Create New Cycle Section -->
+  <div class="card mb-4">
     <div class="card-header">Create New Cycle</div>
     <div class="card-body">
       <div class="mb-3">
-        <label for="cycleName" class="form-label">Cycle Name</label>
-        <input
-          type="text"
-          id="cycleName"
-          class="form-control"
-          [(ngModel)]="newCycle.name"
-          placeholder="e.g., Q1 2025"
-          [disabled]="isLoading"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="startDate" class="form-label">Start Date</label>
-        <input
-          type="date"
-          id="startDate"
-          class="form-control"
-          [(ngModel)]="newCycle.startDate"
-          [disabled]="isLoading"
-        />
-      </div>
-      <div class="mb-3">
-        <label for="endDate" class="form-label">End Date</label>
-        <input
-          type="date"
-          id="endDate"
-          class="form-control"
-          [(ngModel)]="newCycle.endDate"
-          [disabled]="isLoading"
-        />
+        <label class="form-label">Cycle Name</label>
+        <input type="text" class="form-control" [(ngModel)]="newCycle.name" />
       </div>
 
-      <!-- Select KPIs for New Cycle -->
-      <div class="mb-3">
-        <label class="form-label">Assign KPIs (Optional)</label>
-        <div *ngIf="allKPIs.length === 0" class="text-muted">
-          No KPIs available. <a (click)="navigateToCreateKPI()" class="text-primary" style="cursor: pointer;">Create a KPI</a>
+      <div class="row">
+        <div class="col-md-6">
+          <label class="form-label">Start Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newCycle.startDate" />
         </div>
-        <div *ngFor="let kpi of allKPIs" class="form-check">
+        <div class="col-md-6">
+          <label class="form-label">End Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newCycle.endDate" />
+        </div>
+      </div>
+
+      <!-- KPI Selection -->
+      <div class="mt-4">
+        <h5>Assign KPIs to this Cycle</h5>
+        <div *ngFor="let kpi of allKPIs">
           <input
             type="checkbox"
-            class="form-check-input"
             [id]="'kpi-' + kpi.id"
+            [value]="kpi.id"
             (change)="onKpiChange($event, kpi.id!)"
-            [disabled]="isLoading"
           />
-          <label [for]="'kpi-' + kpi.id" class="form-check-label">{{ kpi.name }}</label>
+          <label [for]="'kpi-' + kpi.id">{{ kpi.name }}</label>
         </div>
-      </div>
 
-      <div class="btn-group">
-        <button
-          type="button"
-          class="btn btn-primary me-2"
-          (click)="createCycle()"
-          [disabled]="isLoading"
-        >
-          {{ isLoading ? 'Creating...' : 'Create Cycle' }}
+        <!-- Create KPI Button -->
+        <button type="button" class="btn btn-link" (click)="toggleKpiForm()">
+          + Create New KPI
         </button>
-        <button
-          type="button"
-          class="btn btn-success"
-          (click)="navigateToCreateKPI()"
-          [disabled]="isLoading"
-        >
-          Create KPI
-        </button>
-      </div>
-    </div>
-  </div>
 
-  <!-- List of Cycles -->
-  <div class="card">
-    <div class="card-header">Existing Cycles</div>
-    <div class="card-body">
-      <div *ngIf="cycles.length === 0 && !isLoading" class="text-muted">
-        No cycles available.
-      </div>
-      <div *ngIf="isLoading" class="text-muted">
-        Loading cycles...
-      </div>
-      <div *ngFor="let cycle of cycles" class="mb-3 border-bottom pb-3">
-        <h5 class="d-flex justify-content-between align-items-center">
-          <span>
-            {{ cycle.name }} ({{ cycle.startDate | date: 'shortDate' }} - {{ cycle.endDate | date: 'shortDate' }})
-          </span>
-          <span
-            [ngClass]="{
-              'badge bg-success': cycle.state === 'PASSED',
-              'badge bg-warning': cycle.state === 'OPEN',
-              'badge bg-danger': cycle.state === 'CLOSED'
-            }"
-          >
-            {{ cycle.state }}
-          </span>
-        </h5>
-
-        <div class="mt-2">
-          <p><strong>KPIs:</strong></p>
-          <ul>
-            <li *ngFor="let kpi of cycle.kpis">{{ kpi.name }}</li>
-            <li *ngIf="!cycle.kpis || cycle.kpis.length === 0">None</li>
-          </ul>
-        </div>
-
-        <div class="btn-group" *ngIf="currentUser?.role === 'COMPANY_MANAGER'">
-          <button
-            *ngIf="cycle.state === 'OPEN'"
-            class="btn btn-primary btn-sm me-2"
-            (click)="startEditingKPIs(cycle.id!)"
-            [disabled]="isLoading"
-          >
-            Add KPI to Cycle
-          </button>
-          <button
-            *ngIf="cycle.state === 'OPEN'"
-            class="btn btn-warning btn-sm me-2"
-            (click)="passCycle(cycle.id!)"
-            [disabled]="isLoading"
-          >
-            Pass Cycle
-          </button>
-          <button
-            *ngIf="cycle.state === 'PASSED'"
-            class="btn btn-danger btn-sm me-2"
-            (click)="closeCycle(cycle.id!)"
-            [disabled]="isLoading"
-          >
-            Close Cycle
-          </button>
-        </div>
-
-        <div *ngIf="editingCycleId === cycle.id && showKpiSelection && currentUser?.role === 'COMPANY_MANAGER'" class="mt-3">
-          <label class="form-label">Select KPIs for {{ cycle.name }}</label>
-          <div *ngIf="allKPIs.length === 0" class="text-muted">
-            No KPIs available. <a (click)="navigateToCreateKPI()" class="text-primary" style="cursor: pointer;">Create a KPI</a>
+        <!-- KPI Creation Form -->
+        <div *ngIf="showKpiForm" class="border p-3 mt-3 bg-light">
+          <h6>Create KPI</h6>
+          <div class="mb-2">
+            <label class="form-label">KPI Name</label>
+            <input type="text" class="form-control" [(ngModel)]="newKpi.name" />
           </div>
-          <div *ngFor="let kpi of allKPIs" class="form-check">
-            <input
-              type="checkbox"
-              class="form-check-input"
-              [id]="'edit-kpi-' + kpi.id"
-              (change)="onEditKpiChange($event, kpi.id!)"
-              [checked]="isKpiSelectedForCycle(kpi.id!, cycle)"
-              [disabled]="isLoading"
-            />
-            <label [for]="'edit-kpi-' + kpi.id" class="form-check-label">{{ kpi.name }}</label>
-          </div>
-          <button
-            class="btn btn-success btn-sm me-2"
-            (click)="saveKPIs(cycle.id!)"
-            [disabled]="isLoading"
-          >
-            Save KPIs
-          </button>
-          <button
-            class="btn btn-secondary btn-sm"
-            (click)="cancelEditing()"
-            [disabled]="isLoading"
-          >
-            Cancel
-          </button>
-        </div>
 
-        <div *ngIf="currentUser?.role === 'TEAM_MANAGER'" class="mt-3">
-          <p><strong>My Teams:</strong></p>
-          <div *ngFor="let team of teams" class="border p-2 mb-2">
-            <h6>{{ team.teamName }}</h6>
-            <div class="mt-2">
-              <p><strong>Team Members:</strong></p>
-              <div *ngIf="!team.id || !cycle.id || !teamMembers[team.id] || !teamMembers[team.id][cycle.id] || teamMembers[team.id][cycle.id].length === 0" class="text-muted">
-                No team members assigned to this cycle.
-              </div>
-              <ng-container *ngIf="team.id && cycle.id">
-                <div *ngFor="let member of teamMembers[team.id][cycle.id]" class="border p-2 mb-2">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span>{{ member.name || 'User ' + member.userId }} ({{ member.title }} - {{ member.level }})</span>
-                    <button
-                      *ngIf="cycle.state === 'OPEN'"
-                      class="btn btn-primary btn-sm"
-                      [routerLink]="['/add-objectives', member.userId, cycle.id]"
-                      [disabled]="isLoading"
-                    >
-                      Add Objectives
-                    </button>
-                  </div>
-                </div>
-              </ng-container>
+          <!-- Role Assignments -->
+          <h6>Assign to Roles</h6>
+          <div *ngFor="let roleEntry of selectedRoles; let i = index" class="row mb-2">
+            <div class="col-md-5">
+              <select class="form-select" [(ngModel)]="roleEntry.role">
+                <option [ngValue]="null">Select Role</option>
+                <option *ngFor="let role of allRoles" [ngValue]="role">
+                  {{ role.name }} ({{ role.level }})
+                </option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="roleEntry.weight"
+                min="0.1"
+                step="0.1"
+              />
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeRoleEntry(i)">
+                Remove
+              </button>
             </div>
           </div>
+
+          <button class="btn btn-outline-primary btn-sm" (click)="addRoleEntry()">+ Add Role</button>
+          <button class="btn btn-outline-secondary btn-sm ms-2" (click)="toggleAddRoleForm()">+ Create Role</button>
+
+          <!-- Create New Role Inline -->
+          <div *ngIf="showAddRoleForm" class="border p-2 mt-3">
+            <h6>Create Role</h6>
+            <div class="mb-2">
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newRole.name"
+                placeholder="Role Name"
+              />
+            </div>
+            <div class="mb-2">
+              <select class="form-select" [(ngModel)]="newRole.level">
+                <option [ngValue]="null" disabled>Select Level</option>
+                <option *ngFor="let level of levelOptions" [ngValue]="level">
+                  {{ level }}
+                </option>
+              </select>
+            </div>
+            <button class="btn btn-success btn-sm" (click)="createRole()">Save Role</button>
+          </div>
+
+          <button class="btn btn-success mt-3" (click)="createKpiAndAssign()">Save KPI</button>
         </div>
+      </div>
+
+      <div class="mt-4">
+        <button class="btn btn-primary" (click)="createCycle()">Create Cycle</button>
       </div>
     </div>
   </div>

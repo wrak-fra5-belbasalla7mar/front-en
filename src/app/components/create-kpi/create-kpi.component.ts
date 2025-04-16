@@ -9,6 +9,7 @@ import { UserModel } from '../../models/user.model';
 import { Kpi } from '../../models/kpi.model';
 import { Cycle } from '../../models/cycle.model';
 import { forkJoin } from 'rxjs';
+import { LevelEnum } from '../../models/level.enum';
 
 @Component({
   selector: 'app-create-kpi',
@@ -28,7 +29,8 @@ export class CreateKpiComponent implements OnInit {
   successMessage: string | null = null;
   currentUser: UserModel | null = null;
   showAddRoleForm: boolean = false;
-  newRole: Role = { name: '', level: '' };
+  newRole: Role = { name: '', level: LevelEnum.FRESH };
+  levelOptions = Object.values(LevelEnum);
 
   constructor(
     private evaluationService: EvaluationService,
@@ -39,9 +41,6 @@ export class CreateKpiComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.userService.getUser();
-    // console.log('Current user in CreateKpiComponent:', this.currentUser); 
-
-
     if (!this.currentUser) {
       this.errorMessage = 'Please sign in to continue.';
       return;
@@ -61,7 +60,6 @@ export class CreateKpiComponent implements OnInit {
   loadCycles(): void {
     this.evaluationService.getCycles().subscribe({
       next: (cycles) => {
-        console.log('Cycles loaded from API:', cycles);
         this.cycles = cycles;
         const passedCycle = this.cycles.find(cycle => cycle.state === 'PASSED');
         if (passedCycle && passedCycle.id) {
@@ -71,7 +69,6 @@ export class CreateKpiComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error loading cycles:', err);
         this.errorMessage = err.message || 'Failed to load cycles.';
       }
     });
@@ -80,11 +77,9 @@ export class CreateKpiComponent implements OnInit {
   loadRoles(): void {
     this.evaluationService.getAllRoles().subscribe({
       next: (roles) => {
-        console.log('Roles loaded from API:', roles);
         this.allRoles = roles;
       },
       error: (err) => {
-        console.error('Error loading roles:', err);
         this.errorMessage = err.message || 'Failed to load roles.';
       }
     });
@@ -92,14 +87,14 @@ export class CreateKpiComponent implements OnInit {
 
   showAddRole(): void {
     this.showAddRoleForm = true;
-    this.newRole = { name: '', level: '' };
+    this.newRole = { name: '', level: LevelEnum.FRESH };
     this.errorMessage = null;
     this.successMessage = null;
   }
 
   cancelAddRole(): void {
     this.showAddRoleForm = false;
-    this.newRole = { name: '', level: '' };
+    this.newRole = { name: '', level: LevelEnum.FRESH };
   }
 
   saveNewRole(): void {
@@ -109,18 +104,15 @@ export class CreateKpiComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
     this.evaluationService.createRole(this.newRole).subscribe({
       next: (role) => {
         this.allRoles.push(role);
         this.showAddRoleForm = false;
-        this.newRole = { name: '', level: '' };
+        this.newRole = { name: '', level: LevelEnum.FRESH };
         this.isLoading = false;
         this.successMessage = 'Role created successfully.';
       },
-      error: (err: { message: string; }) => {
+      error: (err: { message: string }) => {
         this.errorMessage = err.message || 'Failed to create role.';
         this.isLoading = false;
       }
@@ -142,10 +134,6 @@ export class CreateKpiComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
-
     const userId = this.currentUser?.id;
     if (!userId) {
       this.errorMessage = 'User ID not found. Please sign in again.';
@@ -164,6 +152,7 @@ export class CreateKpiComponent implements OnInit {
                 this.router.navigate(['/manage-cycles']);
                 return;
               }
+
               const assignRoleRequests = validRoles.map(role =>
                 this.evaluationService.assignKpiToRole(
                   kpi.id!,
@@ -172,6 +161,7 @@ export class CreateKpiComponent implements OnInit {
                   role.weight
                 )
               );
+
               forkJoin(assignRoleRequests).subscribe({
                 next: () => {
                   this.isLoading = false;

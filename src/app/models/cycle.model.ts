@@ -4,7 +4,7 @@ export interface Cycle {
   name: string;
   startDate: string;
   endDate: string;
-  state: 'OPEN' | 'PASSED' | 'CLOSED';
+  state?: 'OPEN' | 'PASSED' | 'CLOSED' | 'CREATED';
   companyManagerId: number;
   kpis?: Kpi[];
 }

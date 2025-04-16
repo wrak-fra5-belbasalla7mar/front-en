@@ -19,52 +19,44 @@ export class EvaluationService {
 
   // Cycles
   createCycle(cycle: Cycle): Observable<Cycle> {
-    return this.http.post<Cycle>(`${this.API_URL}/cycles`, cycle).pipe(
-      catchError(this.handleError('Failed to create cycle'))
-    );
-  }
-
-  passCycle(cycleId: number): Observable<Cycle> {
-    return this.http.put<Cycle>(`${this.API_URL}/cycles/pass/${cycleId}`, {}).pipe(
-      catchError(this.handleError('Failed to pass cycle'))
-    );
-  }
-
-  closeCycle(cycleId: number): Observable<Cycle> {
-    return this.http.put<Cycle>(`${this.API_URL}/cycles/close/${cycleId}`, {}).pipe(
-      catchError(this.handleError('Failed to close cycle'))
-    );
+    return this.http.post<Cycle>(`${this.API_URL}/cycles`, cycle)
+      .pipe(catchError(this.handleError('Failed to create cycle')));
   }
 
   getCycles(): Observable<Cycle[]> {
-    return this.http.get<Cycle[]>(`${this.API_URL}/cycles`).pipe(
-      catchError(this.handleError('Failed to fetch cycles'))
-    );
+    return this.http.get<Cycle[]>(`${this.API_URL}/cycles`)
+      .pipe(catchError(this.handleError('Failed to fetch cycles')));
+  }
+
+  passCycle(cycleId: number): Observable<Cycle> {
+    return this.http.put<Cycle>(`${this.API_URL}/cycles/pass/${cycleId}`, {})
+      .pipe(catchError(this.handleError('Failed to pass cycle')));
+  }
+
+  closeCycle(cycleId: number): Observable<Cycle> {
+    return this.http.put<Cycle>(`${this.API_URL}/cycles/close/${cycleId}`, {})
+      .pipe(catchError(this.handleError('Failed to close cycle')));
   }
 
   // KPIs
   getAllKPIs(): Observable<Kpi[]> {
-    return this.http.get<Kpi[]>(`${this.API_URL}/kpis`).pipe(
-      catchError(this.handleError('Failed to fetch all KPIs'))
-    );
+    return this.http.get<Kpi[]>(`${this.API_URL}/kpis`)
+      .pipe(catchError(this.handleError('Failed to fetch all KPIs')));
   }
 
   getKPIsByCycle(cycleId: number): Observable<Kpi[]> {
-    return this.http.get<Kpi[]>(`${this.API_URL}/kpis/cycle/${cycleId}`).pipe(
-      catchError(this.handleError('Failed to fetch KPIs for cycle'))
-    );
+    return this.http.get<Kpi[]>(`${this.API_URL}/kpis/cycle/${cycleId}`)
+      .pipe(catchError(this.handleError('Failed to fetch KPIs for cycle')));
   }
 
   createKPI(kpi: Kpi, userId: number): Observable<Kpi> {
-    return this.http.post<Kpi>(`${this.API_URL}/kpis/${userId}`, kpi).pipe(
-      catchError(this.handleError('Failed to create KPI'))
-    );
+    return this.http.post<Kpi>(`${this.API_URL}/kpis/${userId}`, kpi)
+      .pipe(catchError(this.handleError('Failed to create KPI')));
   }
 
   assignKpiToCycle(kpiId: number, cycleId: number): Observable<Kpi> {
-    return this.http.put<Kpi>(`${this.API_URL}/kpis/${kpiId}/cycle/${cycleId}`, {}).pipe(
-      catchError(this.handleError('Failed to assign KPI to cycle'))
-    );
+    return this.http.put<Kpi>(`${this.API_URL}/kpis/${kpiId}/cycle/${cycleId}`, {})
+      .pipe(catchError(this.handleError('Failed to assign KPI to cycle')));
   }
 
   assignKpiToRole(kpiId: number, roleName: string, roleLevel: string, weight: number): Observable<void> {
@@ -72,14 +64,28 @@ export class EvaluationService {
       `${this.API_URL}/kpis/${kpiId}/role/${roleName}/${roleLevel}`,
       {},
       { params: { weight: weight.toString() } }
-    ).pipe(
-      catchError(this.handleError('Failed to assign KPI to role'))
-    );
+    ).pipe(catchError(this.handleError('Failed to assign KPI to role')));
   }
 
-  // Ratings
+  // Roles
+  getAllRoles(): Observable<Role[]> {
+    return this.http.get<Role[]>(`${this.API_URL}/roles`)
+      .pipe(catchError(this.handleError('Failed to fetch roles')));
+  }
+
+  getRoleByNameAndLevel(name: string, level: string): Observable<Role> {
+    return this.http.get<Role>(`${this.API_URL}/roles/${name}/${level}`)
+      .pipe(catchError(this.handleError('Failed to fetch role')));
+  }
+
+  createRole(role: Role): Observable<Role> {
+    return this.http.post<Role>(`${this.API_URL}/roles`, role)
+      .pipe(catchError(this.handleError('Failed to create role')));
+  }
+
+  // Evaluation
   saveEvaluation(
-    evaluatorId: number,
+    submitterId: number,
     member: TeamMember,
     evaluationKpis: EvaluationKpi[],
     cycleId: number
@@ -87,65 +93,41 @@ export class EvaluationService {
     const ratingRequests = evaluationKpis.map(kpi => {
       const ratingData = {
         kpi: { id: kpi.kpi.id },
-        evaluatorId,
-        teamMemberId: member.userId,
-        cycle: { id: cycleId },
+        submitterId: submitterId,
+        ratedPersonId: member.userId,
         score: kpi.score,
         feedback: kpi.feedback
       };
       return this.http.post<void>(`${this.API_URL}/ratings`, ratingData);
     });
 
-    return forkJoin(ratingRequests).pipe(
-      catchError(this.handleError('Failed to save evaluation'))
-    );
-  }
-
-  // Roles
-  getAllRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>(`${this.API_URL}/roles`).pipe(
-      catchError(this.handleError('Failed to fetch roles'))
-    );
-  }
-
-  getRoleByNameAndLevel(name: string, level: string): Observable<Role> {
-    return this.http.get<Role>(`${this.API_URL}/roles/${name}/${level}`).pipe(
-      catchError(this.handleError('Failed to fetch role'))
-    );
-  }
-
-  createRole(role: Role): Observable<Role> {
-    return this.http.post<Role>(`${this.API_URL}/roles`, role).pipe(
-      catchError(this.handleError('Failed to create role'))
-    );
+    return forkJoin(ratingRequests)
+      .pipe(catchError(this.handleError('Failed to save evaluation')));
   }
 
   // Teams
   getTeamsByManager(managerId: number): Observable<Team[]> {
-    return this.http.get<Team[]>(`${this.API_URL}/teams/manager/${managerId}`).pipe(
-      catchError(this.handleError('Failed to fetch teams for manager'))
-    );
+    return this.http.get<Team[]>(`${this.API_URL}/teams/manager/${managerId}`)
+      .pipe(catchError(this.handleError('Failed to fetch teams')));
   }
 
   getTeamMembersByTeamAndCycle(teamId: number, cycleId: number): Observable<TeamMember[]> {
-    return this.http.get<TeamMember[]>(`${this.API_URL}/team-members/team/${teamId}/cycle/${cycleId}`).pipe(
-      catchError(this.handleError('Failed to fetch team members for team and cycle'))
-    );
+    return this.http.get<TeamMember[]>(`${this.API_URL}/team-members/team/${teamId}/cycle/${cycleId}`)
+      .pipe(catchError(this.handleError('Failed to fetch team members')));
   }
 
   // Objectives
   assignObjective(objective: Objective): Observable<Objective> {
-    return this.http.post<Objective>(`${this.API_URL}/objectives`, objective).pipe(
-      catchError(this.handleError('Failed to assign objective'))
-    );
+    return this.http.post<Objective>(`${this.API_URL}/objectives`, objective)
+      .pipe(catchError(this.handleError('Failed to assign objective')));
   }
 
   getObjectivesByUserId(userId: number): Observable<Objective[]> {
-    return this.http.get<Objective[]>(`${this.API_URL}/objectives/${userId}`).pipe(
-      catchError(this.handleError('Failed to fetch objectives for user'))
-    );
+    return this.http.get<Objective[]>(`${this.API_URL}/objectives/${userId}`)
+      .pipe(catchError(this.handleError('Failed to fetch objectives')));
   }
 
+  // Error Handler
   private handleError(errorContext: string) {
     return (error: HttpErrorResponse): Observable<never> => {
       let errorMessage = errorContext;

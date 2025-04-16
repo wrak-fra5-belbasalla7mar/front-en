@@ -3,14 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { EvaluationService } from '../../services/evaluation.service';
-import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { Cycle } from '../../models/cycle.model';
 import { Kpi } from '../../models/kpi.model';
+import { Role } from '../../models/role.model';
 import { UserModel } from '../../models/user.model';
-import { Team } from '../../models/team.model';
-import { TeamMember } from '../../models/team-member.model';
-import { forkJoin } from 'rxjs';
+import { LevelEnum } from '../../models/level.enum';
 
 @Component({
   selector: 'app-manage-cycles',
@@ -20,58 +18,43 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./manage-cycles.component.css']
 })
 export class ManageCyclesComponent implements OnInit {
-  newCycle: Cycle = { name: '', startDate: '', endDate: '', state: 'OPEN', companyManagerId: 0 };
+  newCycle: Cycle = { name: '', startDate: '', endDate: '', companyManagerId: 0 };
   cycles: Cycle[] = [];
   allKPIs: Kpi[] = [];
+  allRoles: Role[] = [];
   selectedKPIs: number[] = [];
+  selectedRoles: { role: Role | null; weight: number }[] = [];
+
   editingCycleId: number | null = null;
   editingKPIs: number[] = [];
-  isLoading: boolean = false;
+
+  newKpi: Kpi = { name: '' };
+  newRole: Role = { name: '', level: LevelEnum.FRESH };
+
+  showKpiForm = false;
+  showAddRoleForm = false;
+  showKpiSelection = false;
+
+  isLoading = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
-  showKpiSelection: boolean = false;
+
   currentUser: UserModel | null = null;
-  teams: Team[] = [];
-  teamMembers: { [teamId: number]: { [cycleId: number]: TeamMember[] } } = {};
+  levelOptions = Object.values(LevelEnum);
 
   constructor(
     private evaluationService: EvaluationService,
-    private userService: UserService,
-    private router: Router
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.userService.getUser();
-    console.log('Current user in ManageCyclesComponent:', this.currentUser);
-
-    if (!this.currentUser) {
-      this.errorMessage = 'Please sign in to continue.';
-      return;
-    }
-
     if (this.currentUser?.id) {
       this.newCycle.companyManagerId = this.currentUser.id;
-      if (this.currentUser.role === 'TEAM_MANAGER') {
-        this.loadTeams();
-      }
-    } else {
-      console.warn('User ID not found, but user exists:', this.currentUser);
     }
-
     this.loadCycles();
     this.loadKPIs();
-  }
-
-  loadTeams(): void {
-    this.evaluationService.getTeamsByManager(this.currentUser!.id!).subscribe({
-      next: (teams: Team[]) => {
-        this.teams = teams;
-        this.loadCycles(); 
-      },
-      error: (err: { message: string }) => {
-        this.errorMessage = err.message || 'Failed to load teams.';
-      }
-    });
+    this.loadRoles();
   }
 
   loadCycles(): void {
@@ -79,40 +62,18 @@ export class ManageCyclesComponent implements OnInit {
     this.evaluationService.getCycles().subscribe({
       next: (cycles) => {
         this.cycles = cycles;
-        this.cycles.forEach(cycle => {
+        cycles.forEach(cycle => {
           if (cycle.id) {
             this.evaluationService.getKPIsByCycle(cycle.id).subscribe({
-              next: (kpis) => {
-                cycle.kpis = kpis;
-              },
-              error: (err) => {
-                console.error(`Failed to load KPIs for cycle ${cycle.id}:`, err);
-              }
+              next: (kpis) => cycle.kpis = kpis,
+              error: (err) => console.error('Failed to load KPIs for cycle', err)
             });
-
-            if (this.currentUser?.role === 'TEAM_MANAGER' && this.teams.length > 0) {
-              this.teams.forEach(team => {
-                if (team.id) {
-                  this.evaluationService.getTeamMembersByTeamAndCycle(team.id, cycle.id!).subscribe({
-                    next: (members: TeamMember[]) => {
-                      if (!this.teamMembers[team.id!]) {
-                        this.teamMembers[team.id!] = {};
-                      }
-                      this.teamMembers[team.id!][cycle.id!] = members;
-                    },
-                    error: (err: { message: string }) => {
-                      console.error(`Failed to load team members for team ${team.id} in cycle ${cycle.id}:`, err);
-                    }
-                  });
-                }
-              });
-            }
           }
         });
         this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = err.message || 'Failed to load cycles.';
+        this.errorMessage = err.message;
         this.isLoading = false;
       }
     });
@@ -120,56 +81,106 @@ export class ManageCyclesComponent implements OnInit {
 
   loadKPIs(): void {
     this.evaluationService.getAllKPIs().subscribe({
-      next: (kpis) => {
-        this.allKPIs = kpis;
+      next: (kpis) => this.allKPIs = kpis,
+      error: (err) => this.errorMessage = err.message
+    });
+  }
+
+  loadRoles(): void {
+    this.evaluationService.getAllRoles().subscribe({
+      next: (roles) => this.allRoles = roles,
+      error: (err) => this.errorMessage = err.message
+    });
+  }
+
+  toggleKpiForm(): void {
+    this.showKpiForm = !this.showKpiForm;
+  }
+
+  toggleAddRoleForm(): void {
+    this.showAddRoleForm = !this.showAddRoleForm;
+  }
+
+  addRoleEntry(): void {
+    this.selectedRoles.push({ role: null, weight: 1.0 });
+  }
+
+  removeRoleEntry(index: number): void {
+    this.selectedRoles.splice(index, 1);
+  }
+
+  createRole(): void {
+    if (!this.newRole.name || !this.newRole.level) {
+      this.errorMessage = 'Enter role name and level.';
+      return;
+    }
+
+    this.evaluationService.createRole(this.newRole).subscribe({
+      next: (role) => {
+        this.allRoles.push(role);
+        this.newRole = { name: '', level: LevelEnum.FRESH };
+        this.showAddRoleForm = false;
+        this.successMessage = 'Role created.';
+      },
+      error: (err) => this.errorMessage = err.message
+    });
+  }
+
+  createKpiAndAssign(): void {
+    const userId = this.currentUser?.id;
+    if (!this.newKpi.name || !userId) {
+      this.errorMessage = 'Enter KPI name.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.evaluationService.createKPI(this.newKpi, userId).subscribe({
+      next: (kpi) => {
+        const roleRequests = this.selectedRoles
+          .filter(entry => entry.role)
+          .map(entry => this.evaluationService.assignKpiToRole(
+            kpi.id!, entry.role!.name, entry.role!.level, entry.weight
+          ));
+
+        Promise.all(roleRequests).then(() => {
+          this.successMessage = 'KPI created and roles assigned.';
+          this.loadKPIs();
+          this.resetForm();
+        }).catch(err => {
+          this.errorMessage = err.message || 'Failed to assign roles.';
+        }).finally(() => {
+          this.isLoading = false;
+        });
       },
       error: (err) => {
-        this.errorMessage = err.message || 'Failed to load KPIs.';
+        this.errorMessage = err.message || 'Failed to create KPI.';
+        this.isLoading = false;
       }
     });
   }
 
   createCycle(): void {
-    if (!this.newCycle.name || !this.newCycle.startDate || !this.newCycle.endDate || !this.newCycle.companyManagerId) {
-      this.errorMessage = 'Please fill in all fields.';
-      return;
-    }
-
-    const startDate = new Date(this.newCycle.startDate);
-    const endDate = new Date(this.newCycle.endDate);
-    if (startDate >= endDate) {
-      this.errorMessage = 'End date must be after start date.';
+    if (!this.newCycle.name || !this.newCycle.startDate || !this.newCycle.endDate) {
+      this.errorMessage = 'Please fill all fields.';
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
     this.evaluationService.createCycle(this.newCycle).subscribe({
       next: (cycle) => {
-        if (this.selectedKPIs.length > 0) {
-          const assignRequests = this.selectedKPIs.map(kpiId =>
-            this.evaluationService.assignKpiToCycle(kpiId, cycle.id!)
-          );
-          forkJoin(assignRequests).subscribe({
-            next: () => {
-              this.cycles.push(cycle);
-              this.resetForm();
-              this.isLoading = false;
-              this.successMessage = 'Cycle created successfully.';
-            },
-            error: (err) => {
-              this.errorMessage = err.message || 'Failed to assign KPIs to cycle.';
-              this.isLoading = false;
-            }
-          });
-        } else {
+        const assignRequests = this.selectedKPIs.map(kpiId =>
+          this.evaluationService.assignKpiToCycle(kpiId, cycle.id!)
+        );
+
+        Promise.all(assignRequests).then(() => {
           this.cycles.push(cycle);
           this.resetForm();
-          this.isLoading = false;
           this.successMessage = 'Cycle created successfully.';
-        }
+        }).catch((err) => {
+          this.errorMessage = err.message;
+        }).finally(() => {
+          this.isLoading = false;
+        });
       },
       error: (err) => {
         this.errorMessage = err.message || 'Failed to create cycle.';
@@ -179,117 +190,21 @@ export class ManageCyclesComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.newCycle = { name: '', startDate: '', endDate: '', state: 'OPEN', companyManagerId: this.currentUser?.id || 0 };
+    this.newKpi = { name: '' };
+    this.selectedRoles = [];
     this.selectedKPIs = [];
-    this.showKpiSelection = false;
-  }
-
-  passCycle(cycleId: number): void {
-    this.isLoading = true;
+    this.showKpiForm = false;
+    this.showAddRoleForm = false;
     this.errorMessage = null;
     this.successMessage = null;
-
-    this.evaluationService.passCycle(cycleId).subscribe({
-      next: (updatedCycle) => {
-        const index = this.cycles.findIndex(c => c.id === cycleId);
-        if (index !== -1) {
-          this.cycles[index] = updatedCycle;
-        }
-        this.isLoading = false;
-        this.successMessage = 'Cycle passed successfully.';
-      },
-      error: (err) => {
-        this.errorMessage = err.message || 'Failed to pass cycle.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  closeCycle(cycleId: number): void {
-    this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
-    this.evaluationService.closeCycle(cycleId).subscribe({
-      next: (updatedCycle) => {
-        const index = this.cycles.findIndex(c => c.id === cycleId);
-        if (index !== -1) {
-          this.cycles[index] = updatedCycle;
-        }
-        this.isLoading = false;
-        this.successMessage = 'Cycle closed successfully.';
-      },
-      error: (err) => {
-        this.errorMessage = err.message || 'Failed to close cycle.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  startEditingKPIs(cycleId: number): void {
-    this.editingCycleId = cycleId;
-    this.editingKPIs = [];
-    this.showKpiSelection = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-  }
-
-  saveKPIs(cycleId: number): void {
-    if (this.editingKPIs.length === 0) {
-      this.cancelEditing();
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
-    const assignRequests = this.editingKPIs.map(kpiId =>
-      this.evaluationService.assignKpiToCycle(kpiId, cycleId)
-    );
-    forkJoin(assignRequests).subscribe({
-      next: () => {
-        this.loadCycles();
-        this.cancelEditing();
-        this.isLoading = false;
-        this.successMessage = 'KPIs assigned successfully.';
-      },
-      error: (err) => {
-        this.errorMessage = err.message || 'Failed to assign KPIs to cycle.';
-        this.isLoading = false;
-      }
-    });
-  }
-
-  cancelEditing(): void {
-    this.editingCycleId = null;
-    this.editingKPIs = [];
-    this.showKpiSelection = false;
-  }
-
-  navigateToCreateKPI(): void {
-    this.router.navigate(['/create-kpi']);
   }
 
   onKpiChange(event: Event, kpiId: number): void {
-    const input = event.target as HTMLInputElement;
-    if (input.checked) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
       this.selectedKPIs.push(kpiId);
     } else {
       this.selectedKPIs = this.selectedKPIs.filter(id => id !== kpiId);
     }
-  }
-
-  onEditKpiChange(event: Event, kpiId: number): void {
-    const input = event.target as HTMLInputElement;
-    if (input.checked) {
-      this.editingKPIs.push(kpiId);
-    } else {
-      this.editingKPIs = this.editingKPIs.filter(id => id !== kpiId);
-    }
-  }
-
-  isKpiSelectedForCycle(kpiId: number, cycle: Cycle): boolean {
-    return cycle.kpis?.some(cycleKpi => cycleKpi.id === kpiId) || false;
   }
 }

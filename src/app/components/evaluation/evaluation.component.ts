@@ -1,3 +1,6 @@
+// ✅ Full Updated EvaluationComponent
+// src/app/pages/evaluation/evaluation.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +21,7 @@ import { Team } from '../../models/team.model';
   styleUrls: ['./evaluation.component.css']
 })
 export class EvaluationComponent implements OnInit {
-  passedCycle: Cycle | null = null; 
+  passedCycle: Cycle | null = null;
   otherCycles: Cycle[] = [];
   selectedOtherCycle: Cycle | null = null;
   teamMembers: TeamMember[] = [];
@@ -29,6 +32,7 @@ export class EvaluationComponent implements OnInit {
   team: Team | null = null;
   isLoading: boolean = false;
   errorMessage: string | null = null;
+  successMessage: string | null = null;
   showEvaluationForm: boolean = false;
 
   constructor(
@@ -48,7 +52,9 @@ export class EvaluationComponent implements OnInit {
       next: (team) => {
         this.team = team;
         if (team) {
-          this.teamMembers = team.members || [];
+          this.teamMembers = (team.members || []).filter(
+            m => m.userId !== this.currentUser!.id
+          );
         }
       },
       error: (err) => {
@@ -87,7 +93,7 @@ export class EvaluationComponent implements OnInit {
           this.kpis = kpis;
           this.evaluationKpis = kpis.map(kpi => ({
             kpi,
-            score: 0,
+            score: 1,
             feedback: ''
           }));
           this.showEvaluationForm = true;
@@ -107,6 +113,7 @@ export class EvaluationComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = null;
+    this.successMessage = null;
 
     this.evaluationService
       .saveEvaluation(
@@ -118,6 +125,7 @@ export class EvaluationComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isLoading = false;
+          this.successMessage = `Evaluation saved for ${this.selectedMember?.name}`;
           this.resetForm();
         },
         error: (err) => {
@@ -135,9 +143,6 @@ export class EvaluationComponent implements OnInit {
   }
 
   cancelEvaluation(): void {
-    this.selectedMember = null;
-    this.kpis = [];
-    this.evaluationKpis = [];
-    this.showEvaluationForm = false;
+    this.resetForm();
   }
 }
