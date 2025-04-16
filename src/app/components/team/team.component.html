@@ -1,3 +1,8 @@
+@if(isAdmin) {
+  <div class="alert alert-info" role="alert">
+    You have admin privileges for this team.
+  </div>
+}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5>Team Management</h5>    
   <button class="btn btn-primary">Add Member</button>
@@ -19,10 +24,13 @@
         <ul class="list-unstyled mb-0">
           @for (member of team.members; track member) {
             <li class="py-2 border-bottom">
-              <app-team-member-row [member]="{id:member.userId}"></app-team-member-row>
+              <app-team-member-row
+              [member]="{ id: member.userId, name: member.name, role: member.role }"
+                ></app-team-member-row>
             </li>
           }
         </ul>
+        
       </div>
     </div>
   

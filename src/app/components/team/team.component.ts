@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { TeamMemberRowComponent } from "../team-member-row/team-member-row.component";
 import { TeamService } from '../../services/team.service';
 import { Team } from '../../models/team.model';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-team',
@@ -12,9 +13,11 @@ import { Team } from '../../models/team.model';
 })
 export class TeamComponent {
 team!:Team
- constructor(private teamService:TeamService){
+isAdmin=false;
+ constructor(private teamService:TeamService,private userService:UserService) {
   this.teamService.team$.subscribe(team => {
     this.team = team!;
+    this.isAdmin=this.userService.isAdmin;
   });
  }
   
