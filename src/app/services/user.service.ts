@@ -10,6 +10,7 @@ export class UserService {
   private historySubject = new BehaviorSubject<UserModel[]>([]);  
   private userSubject = new BehaviorSubject<UserModel | null>(null);
   private historyLoaded=false;
+  isAdmin=false;
   user$ = this.userSubject.asObservable();
   history$ = this.historySubject.asObservable();  
 
@@ -17,6 +18,9 @@ export class UserService {
 
   setUser(user: UserModel): void {
     this.userSubject.next(user);
+    if(user.manager==null){
+      this.isAdmin=true;
+    }
   }
   
   getUser(): UserModel | null {

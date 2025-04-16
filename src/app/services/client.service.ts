@@ -45,4 +45,10 @@ export class ClientService {
       params: { memberId: memberId }
     });
   }
+  getUser(userId: number) {
+    return this.http.get<UserResponse>('http://localhost:8080/employee/find', {
+      params:{ id: userId.toString() }
+    });
+  }
+
 }
