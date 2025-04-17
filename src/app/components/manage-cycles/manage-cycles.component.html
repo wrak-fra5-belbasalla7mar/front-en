@@ -4,8 +4,8 @@
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
-  <!-- Create New Cycle Section -->
-  <div class="card mb-4">
+  <!-- Show Create New Cycle form only for COMPANY_MANAGER -->
+  <div *ngIf="isCompanyManager()" class="card mb-4">
     <div class="card-header">Create New Cycle</div>
     <div class="card-body">
       <div class="mb-3">
@@ -24,7 +24,6 @@
         </div>
       </div>
 
-      <!-- KPI Selection -->
       <div class="mt-4">
         <h5>Assign KPIs to this Cycle</h5>
         <div *ngFor="let kpi of allKPIs">
@@ -37,12 +36,10 @@
           <label [for]="'kpi-' + kpi.id">{{ kpi.name }}</label>
         </div>
 
-        <!-- Create KPI Button -->
         <button type="button" class="btn btn-link" (click)="toggleKpiForm()">
           + Create New KPI
         </button>
 
-        <!-- KPI Creation Form -->
         <div *ngIf="showKpiForm" class="border p-3 mt-3 bg-light">
           <h6>Create KPI</h6>
           <div class="mb-2">
@@ -50,7 +47,6 @@
             <input type="text" class="form-control" [(ngModel)]="newKpi.name" />
           </div>
 
-          <!-- Role Assignments -->
           <h6>Assign to Roles</h6>
           <div *ngFor="let roleEntry of selectedRoles; let i = index" class="row mb-2">
             <div class="col-md-5">
@@ -80,7 +76,6 @@
           <button class="btn btn-outline-primary btn-sm" (click)="addRoleEntry()">+ Add Role</button>
           <button class="btn btn-outline-secondary btn-sm ms-2" (click)="toggleAddRoleForm()">+ Create Role</button>
 
-          <!-- Create New Role Inline -->
           <div *ngIf="showAddRoleForm" class="border p-2 mt-3">
             <h6>Create Role</h6>
             <div class="mb-2">
@@ -107,7 +102,42 @@
       </div>
 
       <div class="mt-4">
-        <button class="btn btn-primary" (click)="createCycle()">Create Cycle</button>
+        <button class="btn btn-primary" (click)="createCycle()" [disabled]="loadingStates[newCycle.id!]">
+          {{ loadingStates[newCycle.id!] ? 'Creating...' : 'Create Cycle' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="cycles.length > 0">
+    <div class="col-md-4 mb-4" *ngFor="let cycle of cycles">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5>{{ cycle.name }}</h5>
+          <p>{{ cycle.startDate }} - {{ cycle.endDate }}</p>
+          <p>Status: <span class="badge bg-info">{{ cycle.state }}</span></p>
+         
+          <div class="mt-2">
+            <!-- Add Objectives Button for OPEN Cycles -->
+            <button
+              *ngIf="isTeamManager() && cycle.state === 'OPEN'"
+              class="btn btn-primary btn-sm me-2"
+              [routerLink]="['/add-objectives', currentUser?.id, cycle.id]"
+              [disabled]="loadingStates[cycle.id!]"
+            >
+              Add Objectives
+            </button>
+            <!-- Download Report Button for CLOSED Cycles -->
+            <button
+              *ngIf="isCompanyManager() && cycle.state === 'CLOSED'"
+              class="btn btn-primary btn-sm"
+              (click)="downloadReport(cycle.id!)"
+              [disabled]="loadingStates[cycle.id!]"
+            >
+              {{ loadingStates[cycle.id!] ? 'Downloading...' : 'Download Report' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
