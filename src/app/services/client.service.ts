@@ -4,6 +4,7 @@ import { of, switchMap } from 'rxjs';
 import { UserResponse } from '../models/user-response-model';
 import { UserModel } from '../models/user.model';
 import { Team } from '../models/team.model';
+import { UserRequestModel } from '../models/user.request.model';
 
 @Injectable({
   providedIn: 'root'
@@ -50,5 +51,19 @@ export class ClientService {
       params:{ id: userId.toString() }
     });
   }
+  addUser(user: UserRequestModel) {
+    return this.http.post<String>('http://localhost:8080/manager/add-user', user);
+  }
+  updateUser(id: number, user: UserRequestModel) {
+    const url = `http://localhost:8080/manager/update-user/${id}`;
+    return this.http.put<string>(url, user);
+  }
+  deleteUser(id: number) {
+    return this.http.delete<string>(`http://localhost:8080/manager/delete-user`,{
+      params: { id: id.toString() }
+    });
+  }
+  
+
 
 }

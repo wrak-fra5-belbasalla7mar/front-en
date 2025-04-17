@@ -1,0 +1,63 @@
+<div class="container mt-5">
+  <h2 class="mb-4">Add / Update User</h2>
+  <form #addEditUserForm="ngForm" (ngSubmit)="onSubmit(addEditUserForm)">
+    
+    <div class="mb-3">
+      <label for="name" class="form-label">Full Name</label>
+      <input type="text" class="form-control" id="name" name="name" ngModel required>
+    </div>
+
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" class="form-control" id="title" name="title" ngModel>
+    </div>
+
+    <div class="mb-3">
+      <label for="role" class="form-label">Role</label>
+      <input type="text" class="form-control" id="role" name="role" ngModel>
+    </div>
+
+    <div class="mb-3">
+      <label for="mail" class="form-label">Email</label>
+      <input type="email" class="form-control" id="mail" name="mail" ngModel required>
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" name="password" ngModel>
+    </div>
+
+    <div class="mb-3">
+      <label for="phone" class="form-label">Phone</label>
+      <input type="text" class="form-control" id="phone" name="phone" ngModel>
+    </div>
+
+    <div class="mb-3">
+      <label for="salaryGross" class="form-label">Gross Salary</label>
+      <input type="number" step="0.01" class="form-control" id="salaryGross" name="salaryGross" ngModel>
+    </div>
+
+    <div class="mb-3">
+      <label for="level" class="form-label">Level</label>
+      <select class="form-select" id="level" name="level" ngModel required>
+        <option value="">Select Level</option>
+        <option value="FRESH">Fresh</option>
+        <option value="JUNIOR">Junior</option>
+        <option value="MID">Mid</option>
+        <option value="SENIOR">Senior</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="departmentId" class="form-label">Department ID</label>
+      <input type="number" class="form-control" id="departmentId" name="departmentId" ngModel required>
+    </div>
+
+    <div class="mb-3">
+      <label for="managerId" class="form-label">Manager ID (optional)</label>
+      <input type="number" class="form-control" id="managerId" name="managerId" ngModel>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save User</button>
+  </form>
+</div>

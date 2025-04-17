@@ -34,4 +34,12 @@ export class TeamService {
       });
     });
   }
+  deleteTeamMember(memberId: number): void {
+    this.teamSubject.subscribe(team => {
+      if (!team) return;
+      const updatedMembers = team.members.filter(member => member.userId !== memberId);
+      this.teamSubject.next({ ...team, members: updatedMembers });
+    });
+    this.clientService.deleteUser(memberId)
+  }
 }
