@@ -1,0 +1,49 @@
+<div class="container mt-4">
+
+  <div class="mb-3">
+    <button class="btn btn-secondary" (click)="goBack()">Back to Job Openings</button>
+  </div>
+
+  <h2 class="mb-4">Job Details</h2>
+
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="card shadow-sm" *ngIf="job">
+    <div class="card-body">
+      <h5 class="card-title">{{ job.title }}</h5>
+      <p class="card-text">
+        <strong>Department:</strong> {{ job.department }}<br>
+        <strong>Location:</strong> {{ job.location }}<br>
+         <br>
+        <strong>Description:</strong> {{ job.description }}<br>
+        <strong>Requirements:</strong>
+      </p>
+      <ul>
+        <li *ngFor="let req of job.requirements.split('\n')">{{ req }}</li>
+      </ul>
+      <div>
+        <input
+          type="file"
+          class="form-control mb-2"
+          (change)="onFileChange($event)"
+          accept=".pdf"
+        />
+        <button
+          class="btn btn-primary"
+          (click)="applyForJob()"
+          [disabled]="!cvFile || !job.id || !currentUser?.id"
+        >
+          Apply
+        </button>
+        
+       
+      </div>
+    </div>
+  </div>
+</div>

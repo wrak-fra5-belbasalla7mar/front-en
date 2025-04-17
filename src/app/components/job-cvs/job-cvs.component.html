@@ -1,0 +1,30 @@
+<div class="container mt-4">
+
+  <div class="mb-3">
+    <button class="btn btn-secondary" (click)="goBack()">Back to Job Openings</button>
+  </div>
+  
+  <h2 class="mb-4">Job Applications</h2>
+
+  <!-- Error Message -->
+  <div class="alert alert-danger" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="applications.length === 0 && !errorMessage" class="text-muted">
+    No applications for this job yet.
+  </div>
+
+  <div *ngFor="let app of applications" class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Applicant ID: {{ app.userId }}</h5>
+      <p class="card-text">
+        <strong>Application ID:</strong> {{ app.id }}<br>
+        <strong>Job ID:</strong> {{ app.job }}
+      </p>
+      <button class="btn btn-primary me-2" (click)="downloadCv(app.id!)">Download CV</button>
+      <button class="btn btn-danger" (click)="deleteApplication(app.id!)">Delete Application</button>
+    </div>
+    
+  </div>
+</div>

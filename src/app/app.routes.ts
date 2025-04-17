@@ -9,6 +9,10 @@ import { ManageCyclesComponent } from './components/manage-cycles/manage-cycles.
 import { CreateKpiComponent } from './components/create-kpi/create-kpi.component';
 import { AddObjectivesComponent } from './components/add-objectives/add-objectives.component';
 import { AddEditUserComponent } from './components/add-edit-user/add-edit-user.component';
+import { JobOpeningsComponent } from './components/job-openings/job-openings.component';
+import { JobDetailsComponent } from './components/job-details/job-details.component';
+import { JobCvsComponent } from './components/job-cvs/job-cvs.component';
+import { PostJobRequirementComponent } from './components/post-job-requirement/post-job-requirement.component';
 
 
 export const routes: Routes = [
@@ -20,6 +24,10 @@ export const routes: Routes = [
    {path: 'user', component: UserComponent},
    {path: 'team', component: TeamComponent},
    {path: 'evaluation', component: EvaluationComponent},
+   { path: 'job-openings', component: JobOpeningsComponent },
+  { path: 'job-details/:id', component: JobDetailsComponent },
+  { path: 'post-job', component: PostJobRequirementComponent },
+  { path: 'job-cvs/:id', component: JobCvsComponent },
    {path: 'attendance', component: AttendanceComponent},
    {path: 'vacation', component: VacationComponent},
    {path: 'attendance', component: AttendanceComponent},
@@ -27,6 +35,4 @@ export const routes: Routes = [
    { path: 'add', component: AddEditUserComponent },
    { path: 'edit/:id', component: AddEditUserComponent }
 
-
-   
 ];

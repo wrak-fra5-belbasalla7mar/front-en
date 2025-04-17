@@ -1,0 +1,91 @@
+<div class="container mt-4">
+    <h2 class="mb-4">Post Job Requirement</h2>
+  
+    <!-- Error Message -->
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  
+    <!-- Success Message -->
+    <div class="alert alert-success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+  
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="card-title">New Job Details</h5>
+        <div class="mb-3">
+          <label for="jobTitle" class="form-label">Job Title</label>
+          <input
+            id="jobTitle"
+            class="form-control"
+            [(ngModel)]="newJob.title"
+            placeholder="Enter job title"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="department" class="form-label">Department</label>
+          <input
+            id="department"
+            class="form-control"
+            [(ngModel)]="newJob.department"
+            placeholder="Enter department"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="location" class="form-label">Location</label>
+          <select id="location" class="form-select" [(ngModel)]="newJob.location">
+            <option *ngFor="let loc of locations" [value]="loc">{{ loc }}</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Description</label>
+          <textarea
+            id="description"
+            class="form-control"
+            [(ngModel)]="newJob.description"
+            placeholder="Enter job description"
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="requirements" class="form-label">Requirements</label>
+          <textarea
+            id="requirements"
+            class="form-control"
+            [(ngModel)]="newJob.requirements"
+            placeholder="Enter job requirements (one per line)"
+          ></textarea>
+        </div>
+        <button class="btn btn-warning" (click)="addJob()">+ Post New Job</button>
+      </div>
+    </div>
+  
+    <h4>Posted Jobs</h4>
+    <div *ngIf="jobs.length === 0 && !errorMessage" class="text-muted">
+      No jobs posted yet.
+    </div>
+    <div *ngFor="let job of jobs" class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="card-title">{{ job.title }}</h5>
+        <p class="card-text">
+          <strong>Department:</strong> {{ job.department }}<br>
+          <strong>Location:</strong> {{ job.location }}<br>
+          <strong>Status:</strong>
+          <span
+            [ngClass]="{
+              'badge bg-success': job.status === 'OPEN',
+              'badge bg-danger': job.status === 'CLOSED'
+            }"
+          >
+            {{ job.status }}
+          </span>
+        </p>
+        <button class="btn btn-info me-2" (click)="viewCvs(job.id!)">Show CVs</button>
+        <button class="btn btn-success me-2" (click)="updateJob(job)">Update</button>
+        <button class="btn btn-danger me-2" (click)="deleteJob(job.id!)">Delete</button>
+        <button class="btn btn-secondary" (click)="toggleJobStatus(job)">
+          {{ job.status === 'CLOSED' ? 'OPEN' : 'CLOSED' }}
+        </button>
+      </div>
+    </div>
+  </div>
