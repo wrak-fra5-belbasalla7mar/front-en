@@ -24,21 +24,16 @@ export class ManageCyclesComponent implements OnInit {
   allRoles: Role[] = [];
   selectedKPIs: number[] = [];
   selectedRoles: { role: Role | null; weight: number }[] = [];
-
   editingCycleId: number | null = null;
   editingKPIs: number[] = [];
-
   newKpi: Kpi = { name: '' };
   newRole: Role = { name: '', level: LevelEnum.FRESH };
-
   showKpiForm = false;
   showAddRoleForm = false;
   showKpiSelection = false;
-
-  isLoading = false;
+  loadingStates: { [cycleId: number]: boolean } = {}; // Track loading state per cycle
   errorMessage: string | null = null;
   successMessage: string | null = null;
-
   currentUser: UserModel | null = null;
   levelOptions = Object.values(LevelEnum);
 
@@ -49,7 +44,10 @@ export class ManageCyclesComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.userService.getUser();
-    if (this.currentUser?.id) {
+    console.log('Current User:', this.currentUser);
+    if (!this.currentUser || !this.currentUser.id) {
+      this.errorMessage = 'User not logged in or ID missing.';
+    } else {
       this.newCycle.companyManagerId = this.currentUser.id;
     }
     this.loadCycles();
@@ -57,24 +55,32 @@ export class ManageCyclesComponent implements OnInit {
     this.loadRoles();
   }
 
+  isCompanyManager(): boolean {
+    const user = this.userService.getUser();
+    return user?.role === 'COMPANY_MANAGER';
+  }
+
+  isTeamManager(): boolean {
+    const user = this.userService.getUser();
+    return user?.role === 'TEAM_MANAGER';
+  }
+
   loadCycles(): void {
-    this.isLoading = true;
     this.evaluationService.getCycles().subscribe({
       next: (cycles) => {
         this.cycles = cycles;
+        console.log('Cycles loaded:', this.cycles);
         cycles.forEach(cycle => {
           if (cycle.id) {
             this.evaluationService.getKPIsByCycle(cycle.id).subscribe({
               next: (kpis) => cycle.kpis = kpis,
-              error: (err) => console.error('Failed to load KPIs for cycle', err)
+              error: () => {}
             });
           }
         });
-        this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = err.message;
-        this.isLoading = false;
+        this.errorMessage = err.message || 'Failed to load cycles.';
       }
     });
   }
@@ -133,7 +139,6 @@ export class ManageCyclesComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
     this.evaluationService.createKPI(this.newKpi, userId).subscribe({
       next: (kpi) => {
         const roleRequests = this.selectedRoles
@@ -148,13 +153,10 @@ export class ManageCyclesComponent implements OnInit {
           this.resetForm();
         }).catch(err => {
           this.errorMessage = err.message || 'Failed to assign roles.';
-        }).finally(() => {
-          this.isLoading = false;
         });
       },
       error: (err) => {
         this.errorMessage = err.message || 'Failed to create KPI.';
-        this.isLoading = false;
       }
     });
   }
@@ -165,7 +167,6 @@ export class ManageCyclesComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
     this.evaluationService.createCycle(this.newCycle).subscribe({
       next: (cycle) => {
         const assignRequests = this.selectedKPIs.map(kpiId =>
@@ -178,13 +179,33 @@ export class ManageCyclesComponent implements OnInit {
           this.successMessage = 'Cycle created successfully.';
         }).catch((err) => {
           this.errorMessage = err.message;
-        }).finally(() => {
-          this.isLoading = false;
         });
       },
       error: (err) => {
         this.errorMessage = err.message || 'Failed to create cycle.';
-        this.isLoading = false;
+      }
+    });
+  }
+
+  downloadReport(cycleId: number): void {
+    this.loadingStates[cycleId] = true; // Set loading for this specific cycle
+    this.evaluationService.downloadReport(cycleId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cycle_report_${cycleId}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        this.successMessage = 'Report downloaded successfully.';
+      },
+      error: (err) => {
+        this.errorMessage = err.message || 'Failed to download report';
+      },
+      complete: () => {
+        this.loadingStates[cycleId] = false; // Reset loading for this cycle
       }
     });
   }

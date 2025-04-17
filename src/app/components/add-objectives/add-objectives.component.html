@@ -1,78 +1,42 @@
 <div class="container mt-4">
-    <h2>Add Objectives for User {{ userId }}</h2>
-  
-    <!-- Success Message -->
-    <div class="alert alert-success" *ngIf="successMessage">
-      <i class="bi bi-check-circle me-2"></i>{{ successMessage }}
+  <h2>Add Objective</h2>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <form #objectiveForm="ngForm" (ngSubmit)="objectiveForm.valid && saveObjective()">
+    <div class="mb-3">
+      <label class="form-label">Assign To</label>
+      <select class="form-select" [(ngModel)]="newObjective.assignedUserId" name="assignedUser" (ngModelChange)="selectMember(newObjective.assignedUserId)" required>
+        <option [ngValue]="null" disabled>Select a team member</option>
+        <option *ngFor="let member of teamMembers" [ngValue]="member.userId">{{ member.name }}</option>
+      </select>
     </div>
-  
-    <!-- Error Message -->
-    <div class="alert alert-danger" *ngIf="errorMessage">
-      <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMessage }}
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-control" [(ngModel)]="newObjective.title" name="title" required maxlength="100" />
     </div>
-  
-    <!-- Objective Form -->
-    <div class="card">
-      <div class="card-header">Add New Objective</div>
-      <div class="card-body">
-        <div class="mb-3">
-          <label for="objectiveTitle" class="form-label">Objective Title (max 100 characters)</label>
-          <input
-            type="text"
-            id="objectiveTitle"
-            class="form-control"
-            [(ngModel)]="newObjective.title"
-            placeholder="Enter objective title"
-            maxlength="100"
-            [disabled]="isLoading"
-          />
-        </div>
-        <div class="mb-3">
-          <label for="objectiveDescription" class="form-label">Description (Optional, max 500 characters)</label>
-          <textarea
-            id="objectiveDescription"
-            class="form-control"
-            [(ngModel)]="newObjective.description"
-            placeholder="Enter objective description"
-            maxlength="500"
-            [disabled]="isLoading"
-          ></textarea>
-        </div>
-        <div class="btn-group">
-          <button
-            class="btn btn-success me-2"
-            (click)="saveObjective()"
-            [disabled]="isLoading"
-          >
-            <i class="bi bi-check-circle me-1"></i>{{ isLoading ? 'Saving...' : 'Save Objective' }}
-          </button>
-          <button
-            class="btn btn-secondary"
-            [routerLink]="['/manage-cycles']"
-            [disabled]="isLoading"
-          >
-            <i class="bi bi-arrow-left-circle me-1"></i>Back
-          </button>
-        </div>
-      </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" [(ngModel)]="newObjective.description" name="description" required maxlength="500"></textarea>
     </div>
-  
-    <!-- List of Existing Objectives -->
-    <div class="card mt-4">
-      <div class="card-header">Existing Objectives</div>
-      <div class="card-body">
-        <div *ngIf="objectives.length === 0 && !isLoading" class="text-muted">
-          No objectives assigned yet.
-        </div>
-        <div *ngIf="isLoading" class="text-muted">
-          <i class="bi bi-hourglass-split me-1"></i>Loading objectives...
-        </div>
-        <ul>
-          <li *ngFor="let objective of objectives">
-            {{ objective.title }}
-            <span *ngIf="objective.completed" class="badge bg-success ms-2">Completed</span>
-          </li>
-        </ul>
-      </div>
+    <div class="mb-3">
+      <label class="form-label">State</label>
+      <select class="form-select" [(ngModel)]="newObjective.state" name="state" required>
+        <option value="OPEN">Open</option>
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="COMPLETED">Completed</option>
+      </select>
     </div>
-  </div>
+    <div class="mb-3">
+      <label class="form-label">Deadline</label>
+      <input type="date" class="form-control" [(ngModel)]="newObjective.deadline" name="deadline" required />
+    </div>
+    <div class="button-group">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading || objectiveForm.invalid">
+        {{ isLoading ? 'Adding...' : 'Add Objective' }}
+      </button>
+      <button type="button" class="btn btn-secondary ms-2" (click)="cancelObjective()" [disabled]="isLoading">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

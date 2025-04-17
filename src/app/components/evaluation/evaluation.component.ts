@@ -1,9 +1,6 @@
-// ✅ Full Updated EvaluationComponent
-// src/app/pages/evaluation/evaluation.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { EvaluationService } from '../../services/evaluation.service';
 import { UserService } from '../../services/user.service';
 import { TeamService } from '../../services/team.service';
@@ -21,6 +18,7 @@ import { Team } from '../../models/team.model';
   styleUrls: ['./evaluation.component.css']
 })
 export class EvaluationComponent implements OnInit {
+  cycles: Cycle[] = [];
   passedCycle: Cycle | null = null;
   otherCycles: Cycle[] = [];
   selectedOtherCycle: Cycle | null = null;
@@ -30,10 +28,10 @@ export class EvaluationComponent implements OnInit {
   evaluationKpis: EvaluationKpi[] = [];
   currentUser: UserModel | null = null;
   team: Team | null = null;
+  showEvaluationForm: boolean = false;
   isLoading: boolean = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
-  showEvaluationForm: boolean = false;
 
   constructor(
     private evaluationService: EvaluationService,
@@ -52,8 +50,9 @@ export class EvaluationComponent implements OnInit {
       next: (team) => {
         this.team = team;
         if (team) {
+          // Filter out the current user from the team members list
           this.teamMembers = (team.members || []).filter(
-            m => m.userId !== this.currentUser!.id
+            member => member.userId !== this.currentUser!.id
           );
         }
       },
@@ -68,6 +67,7 @@ export class EvaluationComponent implements OnInit {
   loadCycles(): void {
     this.evaluationService.getCycles().subscribe({
       next: (cycles) => {
+        this.cycles = cycles;
         this.passedCycle = cycles.find(cycle => cycle.state === 'PASSED') || null;
         this.otherCycles = cycles.filter(cycle => cycle.state !== 'PASSED');
       },
@@ -77,37 +77,44 @@ export class EvaluationComponent implements OnInit {
     });
   }
 
-  selectOtherCycle(cycle: Cycle): void {
-    this.selectedOtherCycle = cycle;
-    this.selectedMember = null;
-    this.kpis = [];
-    this.evaluationKpis = [];
-    this.showEvaluationForm = false;
-  }
-
   startEvaluation(member: TeamMember): void {
-    this.selectedMember = member;
-    if (this.passedCycle && this.selectedMember) {
-      this.evaluationService.getKPIsByCycle(this.passedCycle.id!).subscribe({
-        next: (kpis) => {
-          this.kpis = kpis;
-          this.evaluationKpis = kpis.map(kpi => ({
-            kpi,
-            score: 1,
-            feedback: ''
-          }));
-          this.showEvaluationForm = true;
-        },
-        error: (err) => {
-          this.errorMessage = err.message || 'Failed to load KPIs.';
-        }
-      });
+    if (!this.passedCycle) {
+      this.errorMessage = 'No passed cycle available for evaluation.';
+      return;
     }
+
+    this.selectedMember = member;
+    this.showEvaluationForm = true;
+    this.loadKPIsForCycle();
   }
 
-  saveEvaluation(): void {
+  loadKPIsForCycle(): void {
+    if (!this.passedCycle?.id) return;
+
+    this.evaluationService.getKPIsByCycle(this.passedCycle.id).subscribe({
+      next: (kpis) => {
+        this.kpis = kpis;
+        this.evaluationKpis = kpis.map(kpi => ({
+          kpi,
+          score: 0,
+          feedback: ''
+        }));
+      },
+      error: (err) => {
+        this.errorMessage = err.message || 'Failed to load KPIs for this cycle.';
+        this.showEvaluationForm = false;
+      }
+    });
+  }
+
+  saveEvaluation(form: NgForm): void {
+    if (form.invalid) {
+      this.errorMessage = 'Please provide a score between 1 and 5 for all KPIs.';
+      return;
+    }
+
     if (!this.passedCycle || !this.selectedMember || !this.currentUser) {
-      this.errorMessage = 'Missing required data to save evaluation.';
+      this.errorMessage = 'Missing required information to save evaluation.';
       return;
     }
 
@@ -125,8 +132,8 @@ export class EvaluationComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isLoading = false;
-          this.successMessage = `Evaluation saved for ${this.selectedMember?.name}`;
-          this.resetForm();
+          this.successMessage = `Evaluation for ${this.selectedMember?.name} saved successfully!`;
+          this.cancelEvaluation();
         },
         error: (err) => {
           this.errorMessage = err.message || 'Failed to save evaluation.';
@@ -135,14 +142,15 @@ export class EvaluationComponent implements OnInit {
       });
   }
 
-  resetForm(): void {
+  cancelEvaluation(): void {
+    this.showEvaluationForm = false;
     this.selectedMember = null;
     this.kpis = [];
     this.evaluationKpis = [];
-    this.showEvaluationForm = false;
   }
 
-  cancelEvaluation(): void {
-    this.resetForm();
+  selectOtherCycle(cycle: Cycle): void {
+    this.selectedOtherCycle = cycle;
+    this.showEvaluationForm = false;
   }
 }

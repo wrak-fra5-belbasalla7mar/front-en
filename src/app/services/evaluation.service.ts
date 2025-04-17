@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, forkJoin } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, forkJoin, map, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { Cycle } from '../models/cycle.model';
 import { Kpi, EvaluationKpi } from '../models/kpi.model';
 import { TeamMember } from '../models/team-member.model';
 import { Role } from '../models/role.model';
 import { Team } from '../models/team.model';
 import { Objective } from '../models/objective.model';
+import { UserService } from './user.service';
+import { TeamService } from './team.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +17,11 @@ import { Objective } from '../models/objective.model';
 export class EvaluationService {
   private readonly API_URL = 'http://localhost:8083';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private userService: UserService,
+    private teamService: TeamService
+  ) {}
 
   // Cycles
   createCycle(cycle: Cycle): Observable<Cycle> {
@@ -26,6 +32,11 @@ export class EvaluationService {
   getCycles(): Observable<Cycle[]> {
     return this.http.get<Cycle[]>(`${this.API_URL}/cycles`)
       .pipe(catchError(this.handleError('Failed to fetch cycles')));
+  }
+
+  getCycleById(cycleId: number): Observable<Cycle> {
+    return this.http.get<Cycle>(`${this.API_URL}/cycles/${cycleId}`)
+      .pipe(catchError(this.handleError('Failed to fetch cycle by ID')));
   }
 
   passCycle(cycleId: number): Observable<Cycle> {
@@ -111,9 +122,16 @@ export class EvaluationService {
       .pipe(catchError(this.handleError('Failed to fetch teams')));
   }
 
-  getTeamMembersByTeamAndCycle(teamId: number, cycleId: number): Observable<TeamMember[]> {
-    return this.http.get<TeamMember[]>(`${this.API_URL}/team-members/team/${teamId}/cycle/${cycleId}`)
-      .pipe(catchError(this.handleError('Failed to fetch team members')));
+  getTeamMembersByTeamAndCycle(teamId: number, cycleId: number, managerId: number): Observable<TeamMember[]> {
+    return this.teamService.team$.pipe(
+      switchMap(team => {
+        if (!team || team.id !== teamId) {
+          return throwError(() => new Error('Team not loaded or mismatched'));
+        }
+        return of(team.members.filter(member => member.userId !== managerId));
+      }),
+      catchError(this.handleError('Failed to fetch team members'))
+    );
   }
 
   // Objectives
@@ -125,6 +143,13 @@ export class EvaluationService {
   getObjectivesByUserId(userId: number): Observable<Objective[]> {
     return this.http.get<Objective[]>(`${this.API_URL}/objectives/${userId}`)
       .pipe(catchError(this.handleError('Failed to fetch objectives')));
+  }
+
+  // Reports
+  downloadReport(cycleId: number): Observable<Blob> {
+    const reportUrl = `http://localhost:8089/api/reports/download/cycle/${cycleId}`;
+    return this.http.get(reportUrl, { responseType: 'blob' })
+      .pipe(catchError(this.handleError('Failed to download report')));
   }
 
   // Error Handler
