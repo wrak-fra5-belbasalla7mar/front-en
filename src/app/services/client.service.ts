@@ -31,7 +31,7 @@ export class ClientService {
           location: res.department.company.location,
           role: res.role,
         };
-
+        localStorage.setItem('user', JSON.stringify(user));
         return of(user);
       })
     );
@@ -41,6 +41,13 @@ export class ClientService {
       params: { id: memberId.toString() }  
     });
   }
+
+  getStoredUser(): UserModel | null {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  }
+
+ 
   getTeamMembers(memberId: number) {
     return this.http.get<Team>('http://localhost:8082/teams/team-members', {
       params: { memberId: memberId }

@@ -4,6 +4,7 @@ import { TeamComponent } from './components/team/team.component';
 import { EvaluationComponent } from './components/evaluation/evaluation.component';
 import { AttendanceComponent } from './components/attendance/attendance.component';
 import { SignInComponent } from './components/sign-in/sign-in.component';
+import { VacationComponent } from './components/vacation/vacation.component';
 import { ManageCyclesComponent } from './components/manage-cycles/manage-cycles.component';
 import { CreateKpiComponent } from './components/create-kpi/create-kpi.component';
 import { AddObjectivesComponent } from './components/add-objectives/add-objectives.component';
@@ -18,6 +19,9 @@ export const routes: Routes = [
    { path: 'add-objectives/:userId/:cycleId', component: AddObjectivesComponent },
    {path: 'user', component: UserComponent},
    {path: 'team', component: TeamComponent},
+   {path: 'evaluation', component: EvaluationComponent},
+   {path: 'attendance', component: AttendanceComponent},
+   {path: 'vacation', component: VacationComponent}
    {path: 'attendance', component: AttendanceComponent},
    { path: 'manage-cycles', component: ManageCyclesComponent },
    { path: 'add', component: AddEditUserComponent },
