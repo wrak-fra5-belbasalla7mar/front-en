@@ -21,7 +21,7 @@ export const routes: Routes = [
    {path: 'team', component: TeamComponent},
    {path: 'evaluation', component: EvaluationComponent},
    {path: 'attendance', component: AttendanceComponent},
-   {path: 'vacation', component: VacationComponent}
+   {path: 'vacation', component: VacationComponent},
    {path: 'attendance', component: AttendanceComponent},
    { path: 'manage-cycles', component: ManageCyclesComponent },
    { path: 'add', component: AddEditUserComponent },
