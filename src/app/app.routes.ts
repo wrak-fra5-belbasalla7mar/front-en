@@ -4,6 +4,7 @@ import { TeamComponent } from './components/team/team.component';
 import { EvaluationComponent } from './components/evaluation/evaluation.component';
 import { AttendanceComponent } from './components/attendance/attendance.component';
 import { SignInComponent } from './components/sign-in/sign-in.component';
+import { VacationComponent } from './components/vacation/vacation.component';
 
 
 export const routes: Routes = [
@@ -12,7 +13,8 @@ export const routes: Routes = [
    {path: 'user', component: UserComponent},
    {path: 'team', component: TeamComponent},
    {path: 'evaluation', component: EvaluationComponent},
-   {path: 'attendance', component: AttendanceComponent}
+   {path: 'attendance', component: AttendanceComponent},
+   {path: 'vacation', component: VacationComponent}
 
 
 ];

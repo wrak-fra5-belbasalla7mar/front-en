@@ -1,1 +1,31 @@
-<p>attendance works!</p>
+<div class="container-fluid mt-5">
+  <div class="card mx-auto" style="width: 100%; max-width: 500px; height: auto;">
+    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+      <h2 class="card-title text-center mb-4">Set Daily Attendance</h2>
+      
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select class="form-select" [(ngModel)]="status">
+          <option value="OnSite">On-Site</option>
+          <option value="Remote">Remote</option>
+          <option value="Absent">Absent</option>
+        </select>
+      </div>
+      
+      <button 
+        class="btn btn-primary w-100" 
+        (click)="submitStatus()"
+        [disabled]="isLoading || !userId">
+        <span *ngIf="!isLoading">Submit</span>
+        <span *ngIf="isLoading">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Processing...
+        </span>
+      </button>
+      
+      <div *ngIf="message" class="mt-3 alert" [ngClass]="{'alert-success': !isError, 'alert-danger': isError}">
+        {{ message }}
+      </div>
+    </div>
+  </div>
+</div>
